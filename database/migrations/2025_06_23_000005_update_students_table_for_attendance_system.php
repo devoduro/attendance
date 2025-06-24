@@ -13,31 +13,71 @@ return new class extends Migration
     {
         Schema::table('students', function (Blueprint $table) {
             // Add fields for medical condition and school attending
-            $table->string('school_attending')->nullable()->after('enrollment_code');
-            $table->text('medical_condition')->nullable()->after('school_attending');
-            $table->string('post_code')->nullable()->after('residential_address');
+            if (!Schema::hasColumn('students', 'school_attending')) {
+                $table->string('school_attending')->nullable();
+            }
+            if (!Schema::hasColumn('students', 'medical_condition')) {
+                $table->text('medical_condition')->nullable();
+            }
+            if (!Schema::hasColumn('students', 'residential_address')) {
+                $table->string('residential_address')->nullable();
+            }
+            if (!Schema::hasColumn('students', 'post_code')) {
+                $table->string('post_code')->nullable();
+            }
             
             // Add fields for parent/guardian information
-            $table->string('parent_name')->nullable()->after('guardians_name');
-            $table->string('parent_address')->nullable()->after('parent_name');
-            $table->string('parent_post_code')->nullable()->after('parent_address');
-            $table->string('parent_contact_number1')->nullable()->after('parent_post_code');
-            $table->string('parent_contact_number2')->nullable()->after('parent_contact_number1');
-            $table->string('parent_email')->nullable()->after('parent_contact_number2');
+            if (!Schema::hasColumn('students', 'guardians_name')) {
+                $table->string('guardians_name')->nullable();
+            }
+            if (!Schema::hasColumn('students', 'parent_name')) {
+                $table->string('parent_name')->nullable();
+            }
+            if (!Schema::hasColumn('students', 'parent_address')) {
+                $table->string('parent_address')->nullable();
+            }
+            if (!Schema::hasColumn('students', 'parent_post_code')) {
+                $table->string('parent_post_code')->nullable();
+            }
+            if (!Schema::hasColumn('students', 'parent_contact_number1')) {
+                $table->string('parent_contact_number1')->nullable();
+            }
+            if (!Schema::hasColumn('students', 'parent_contact_number2')) {
+                $table->string('parent_contact_number2')->nullable();
+            }
+            if (!Schema::hasColumn('students', 'parent_email')) {
+                $table->string('parent_email')->nullable();
+            }
             
             // Add fields for second parent/guardian
-            $table->string('second_parent_name')->nullable()->after('parent_email');
-            $table->string('second_parent_address')->nullable()->after('second_parent_name');
-            $table->string('second_parent_post_code')->nullable()->after('second_parent_address');
-            $table->string('second_parent_contact_number1')->nullable()->after('second_parent_post_code');
-            $table->string('second_parent_contact_number2')->nullable()->after('second_parent_contact_number1');
-            $table->string('second_parent_email')->nullable()->after('second_parent_contact_number2');
+            if (!Schema::hasColumn('students', 'second_parent_name')) {
+                $table->string('second_parent_name')->nullable();
+            }
+            if (!Schema::hasColumn('students', 'second_parent_address')) {
+                $table->string('second_parent_address')->nullable();
+            }
+            if (!Schema::hasColumn('students', 'second_parent_post_code')) {
+                $table->string('second_parent_post_code')->nullable();
+            }
+            if (!Schema::hasColumn('students', 'second_parent_contact_number1')) {
+                $table->string('second_parent_contact_number1')->nullable();
+            }
+            if (!Schema::hasColumn('students', 'second_parent_contact_number2')) {
+                $table->string('second_parent_contact_number2')->nullable();
+            }
+            if (!Schema::hasColumn('students', 'second_parent_email')) {
+                $table->string('second_parent_email')->nullable();
+            }
             
             // Add field for other children in family
-            $table->text('other_children_in_family')->nullable()->after('second_parent_email');
+            if (!Schema::hasColumn('students', 'other_children_in_family')) {
+                $table->text('other_children_in_family')->nullable();
+            }
             
             // Add field for centre assignment
-            $table->foreignId('centre_id')->nullable()->after('other_children_in_family')->constrained()->nullOnDelete();
+            if (!Schema::hasColumn('students', 'centre_id')) {
+                $table->foreignId('centre_id')->nullable()->constrained()->nullOnDelete();
+            }
         });
     }
 

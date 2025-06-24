@@ -53,11 +53,13 @@ class UserSeeder extends Seeder
                 'status' => 'active',
                 'phone_number' => '3456789012',
             ],
+            // Note: Parent role is not allowed in the users table schema
+            // Converting to student role for now
             [
                 'name' => 'Robert Johnson',
                 'email' => 'parent@attendance.com',
                 'password' => Hash::make('password'),
-                'role' => 'parent',
+                'role' => 'student', // Changed from 'parent' to 'student'
                 'status' => 'active',
                 'phone_number' => '4567890123',
             ],

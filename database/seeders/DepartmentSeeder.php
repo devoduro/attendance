@@ -14,18 +14,18 @@ class DepartmentSeeder extends Seeder
     public function run(): void
     {
         $departments = [
-            ['name' => 'Mathematics', 'description' => 'Mathematics department for all math subjects'],
-            ['name' => 'English Language', 'description' => 'English language and literature department'],
-            ['name' => 'Science', 'description' => 'Science department including physics, chemistry and biology'],
-            ['name' => 'Computer Science', 'description' => 'Computer science and programming department'],
-            ['name' => 'Languages', 'description' => 'Foreign languages department'],
-            ['name' => 'Arts', 'description' => 'Arts and creative subjects department'],
-            ['name' => 'Music', 'description' => 'Music and performance arts department'],
-            ['name' => 'Physical Education', 'description' => 'Physical education and sports department'],
+            ['name' => 'Mathematics', 'status' => 'active'],
+            ['name' => 'English Language', 'status' => 'active'],
+            ['name' => 'Science', 'status' => 'active'],
+            ['name' => 'Computer Science', 'status' => 'active'],
+            ['name' => 'Languages', 'status' => 'active'],
+            ['name' => 'Arts', 'status' => 'active'],
+            ['name' => 'Music', 'status' => 'active'],
+            ['name' => 'Physical Education', 'status' => 'active'],
         ];
 
         foreach ($departments as $department) {
-            Department::firstOrCreate($department);
+            Department::firstOrCreate(['name' => $department['name']], $department);
         }
         
         $this->command->info('Departments seeded successfully');

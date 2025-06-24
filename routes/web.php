@@ -46,11 +46,7 @@ Route::middleware(['auth'])->group(function () {
      
     // Students Management
     Route::resource('students', StudentController::class);
-    Route::get('students/assign-class', [StudentController::class, 'assignClassForm'])->name('students.assign');
-    Route::post('students/assign-class', [StudentController::class, 'syncStudentsToClass'])->name('students.assign.store');
-    Route::put('students/{student}/remove-from-class/{class}', [StudentController::class, 'removeFromClass'])->name('students.remove-from-class');
-    Route::get('students/{student}/results', [StudentController::class, 'results'])->name('students.results');
-    Route::get('students-import', [StudentController::class, 'importForm'])->name('students.import.form');
+     Route::get('students-import', [StudentController::class, 'importForm'])->name('students.import.form');
     Route::post('students-import', [StudentController::class, 'processImport'])->name('students.import.process');
     Route::get('students-import-template', [StudentController::class, 'downloadImportTemplate'])->name('students.import.template');
      

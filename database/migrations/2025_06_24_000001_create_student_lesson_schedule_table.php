@@ -11,19 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('lesson_attendances', function (Blueprint $table) {
+        Schema::create('student_lesson_schedule', function (Blueprint $table) {
             $table->id();
             $table->foreignId('student_id')->constrained()->onDelete('cascade');
             $table->foreignId('lesson_schedule_id')->constrained()->onDelete('cascade');
-            $table->date('attendance_date');
-            $table->enum('status', ['present', 'absent'])->default('absent');
-            $table->dateTime('check_in_time')->nullable();
-            $table->text('remarks')->nullable();
-            $table->boolean('notification_sent')->default(false);
             $table->timestamps();
             
-            // Ensure a student can only have one attendance record per lesson schedule per date
-            $table->unique(['student_id', 'lesson_schedule_id', 'attendance_date']);
+            // Add a unique constraint to prevent duplicate assignments
+            $table->unique(['student_id', 'lesson_schedule_id'], 'student_lesson_unique');
         });
     }
 
@@ -32,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('lesson_attendances');
+        Schema::dropIfExists('student_lesson_schedule');
     }
 };

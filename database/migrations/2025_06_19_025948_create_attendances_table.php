@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('attendances', function (Blueprint $table) {
             $table->id();
             $table->foreignId('student_id')->constrained()->onDelete('cascade');
-            $table->foreignId('class_id')->constrained('classes')->onDelete('cascade');
+            $table->string('class_name');
             $table->date('date');
             $table->enum('status', ['present', 'absent', 'late', 'excused']);
             $table->text('remarks')->nullable();

@@ -53,7 +53,7 @@ class LessonScheduleSeeder extends Seeder
                         $schedule->day_of_week = $daysOfWeek[array_rand($daysOfWeek)];
                         $schedule->start_date = fake()->dateTimeBetween('-6 months', 'now')->format('Y-m-d');
                         $schedule->end_date = fake()->dateTimeBetween('+1 month', '+6 months')->format('Y-m-d');
-                        $schedule->subject = $department->name;
+                        // Removed subject field as it doesn't exist in the database
                         $schedule->is_active = true;
                         $schedule->notes = 'Regular ' . $department->name . ' class in ' . $centre->name . ' during ' . $section->name;
                         $schedule->save();

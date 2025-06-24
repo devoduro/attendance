@@ -29,9 +29,9 @@ class LessonAttendanceSeeder extends Seeder
         $students = Student::all()->keyBy('id');
         $lessonSchedules = LessonSchedule::all()->keyBy('id');
         
-        // Attendance statuses
-        $statuses = ['present', 'absent', 'late', 'excused'];
-        $statusWeights = [70, 10, 15, 5]; // Probability weights for each status
+        // Attendance statuses - only 'present' and 'absent' are allowed in the database
+        $statuses = ['present', 'absent'];
+        $statusWeights = [80, 20]; // Probability weights for each status
         
         // Track attendance records
         $attendanceCount = 0;
@@ -85,29 +85,40 @@ class LessonAttendanceSeeder extends Seeder
                 $attendance->attendance_date = $date->format('Y-m-d');
                 $attendance->status = $status;
                 
-                // Add check-in time if present or late
-                if ($status === 'present' || $status === 'late') {
+                // Add check-in time if present
+                if ($status === 'present') {
                     $baseTime = $schedule->lessonSection->start_time;
                     $baseHour = (int)substr($baseTime, 0, 2);
                     $baseMinute = (int)substr($baseTime, 3, 2);
                     
-                    // For 'late' status, add 5-20 minutes
-                    $minutesToAdd = $status === 'late' ? rand(5, 20) : rand(-5, 5);
+                    // Random variation in arrival time (-5 to +10 minutes)
+                    $minutesToAdd = rand(-5, 10);
                     
                     $checkInTime = \Carbon\Carbon::createFromTime($baseHour, $baseMinute)
                         ->addMinutes($minutesToAdd)
                         ->format('H:i:s');
                     
-                    $attendance->check_in_time = $checkInTime;
+                    $attendance->check_in_time = $date->format('Y-m-d') . ' ' . $checkInTime;
                 }
                 
                 // Add remarks for some records
                 if (rand(1, 10) <= 3) { // 30% chance of having remarks
                     $remarks = [
-                        'present' => ['Good participation in class', 'Actively engaged in discussion', 'Completed all exercises'],
-                        'absent' => ['No notification received', 'Will need to catch up on missed work', 'Parent called to explain absence'],
-                        'late' => ['Traffic delay reported', 'Had to complete assignment for another class', 'Bus was late'],
-                        'excused' => ['Medical appointment', 'Family emergency', 'Approved school activity']
+                        'present' => [
+                            'Good participation in class', 
+                            'Actively engaged in discussion', 
+                            'Completed all exercises',
+                            'Arrived on time and prepared',
+                            'Contributed positively to group work'
+                        ],
+                        'absent' => [
+                            'No notification received', 
+                            'Will need to catch up on missed work', 
+                            'Parent called to explain absence',
+                            'Medical absence - note provided',
+                            'Family emergency reported',
+                            'Approved school activity'
+                        ]
                     ];
                     
                     $attendance->remarks = $remarks[$status][array_rand($remarks[$status])];
