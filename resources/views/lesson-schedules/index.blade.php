@@ -3,45 +3,39 @@
 @section('title', 'Lesson Schedules Management')
 
 @section('content')
-<div class="container-fluid">
-    <div class="d-sm-flex align-items-center justify-content-between mb-4">
-        <h1 class="h3 mb-0 text-gray-800">Lesson Schedules Management</h1>
-        <a href="{{ route('lesson-schedules.create') }}" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
-            <i class="fas fa-plus fa-sm text-white-50"></i> Add New Lesson Schedule
+<div class="max-w-7xl mx-auto px-4 py-8">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 gap-4">
+        <h1 class="text-2xl font-bold text-gray-800 flex items-center gap-2">
+            <i class="fas fa-calendar-alt text-blue-500"></i>
+            Lesson Schedules Management
+        </h1>
+        <a href="{{ route('lesson-schedules.create') }}" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded shadow hover:bg-blue-700 transition">
+            <i class="fas fa-plus mr-2"></i> Add New Lesson Schedule
         </a>
     </div>
 
     @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            {{ session('success') }}
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
+        <div class="mb-6 px-4 py-3 rounded bg-green-100 text-green-800 flex items-center justify-between">
+            <span><i class="fas fa-check-circle mr-2"></i>{{ session('success') }}</span>
+            <button onclick="this.parentElement.remove()" class="ml-4 text-green-600 hover:text-green-900 focus:outline-none">
+                <i class="fas fa-times"></i>
             </button>
         </div>
     @endif
 
     <!-- Filters -->
-    <div class="card shadow mb-4">
-        <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">Filter Lesson Schedules</h6>
+    <div class="bg-white rounded-lg shadow mb-8">
+        <div class="px-6 py-4 border-b border-gray-100">
+            <h2 class="text-lg font-semibold text-blue-700 flex items-center gap-2">
+                <i class="fas fa-filter"></i> Filter Lesson Schedules
+            </h2>
         </div>
-        <div class="card-body">
-            <form action="{{ route('lesson-schedules.index') }}" method="GET" class="form-inline">
-                <div class="form-group mb-2 mr-2">
-                    <label for="centre_id" class="sr-only">Centre</label>
-                    <select class="form-control" id="centre_id" name="centre_id">
-                        <option value="">All Centres</option>
-                        @foreach($centres as $centre)
-                            <option value="{{ $centre->id }}" {{ request('centre_id') == $centre->id ? 'selected' : '' }}>
-                                {{ $centre->name }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-                
-                <div class="form-group mb-2 mr-2">
-                    <label for="day_of_week" class="sr-only">Day</label>
-                    <select class="form-control" id="day_of_week" name="day_of_week">
+        <div class="px-6 py-4">
+            <form action="{{ route('lesson-schedules.index') }}" method="GET" class="flex flex-col sm:flex-row flex-wrap gap-4 items-end">
+                {{-- Centre and Teacher filters commented out --}}
+                <div>
+                    <label for="day_of_week" class="block text-sm font-medium text-gray-700 mb-1">Day</label>
+                    <select class="block w-40 px-3 py-2 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500" id="day_of_week" name="day_of_week">
                         <option value="">All Days</option>
                         @foreach(['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] as $day)
                             <option value="{{ $day }}" {{ request('day_of_week') == $day ? 'selected' : '' }}>
@@ -50,107 +44,86 @@
                         @endforeach
                     </select>
                 </div>
-                
-                <div class="form-group mb-2 mr-2">
-                    <label for="teacher_id" class="sr-only">Teacher</label>
-                    <select class="form-control" id="teacher_id" name="teacher_id">
-                        <option value="">All Teachers</option>
-                        @foreach($teachers as $teacher)
-                            <option value="{{ $teacher->id }}" {{ request('teacher_id') == $teacher->id ? 'selected' : '' }}>
-                                {{ $teacher->user->name }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-                
-                <div class="form-group mb-2 mr-2">
-                    <label for="status" class="sr-only">Status</label>
-                    <select class="form-control" id="status" name="status">
+                <div>
+                    <label for="status" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                    <select class="block w-40 px-3 py-2 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500" id="status" name="status">
                         <option value="">All Status</option>
                         <option value="1" {{ request('status') === '1' ? 'selected' : '' }}>Active</option>
                         <option value="0" {{ request('status') === '0' ? 'selected' : '' }}>Inactive</option>
                     </select>
                 </div>
-                
-                <button type="submit" class="btn btn-primary mb-2">
-                    <i class="fas fa-filter"></i> Filter
-                </button>
-                
-                <a href="{{ route('lesson-schedules.index') }}" class="btn btn-secondary mb-2 ml-2">
-                    <i class="fas fa-sync"></i> Reset
-                </a>
+                <div class="flex gap-2 mt-2 sm:mt-0">
+                    <button type="submit" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">
+                        <i class="fas fa-filter mr-2"></i> Filter
+                    </button>
+                    <a href="{{ route('lesson-schedules.index') }}" class="inline-flex items-center px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition">
+                        <i class="fas fa-sync mr-2"></i> Reset
+                    </a>
+                </div>
             </form>
         </div>
     </div>
 
-    <div class="card shadow mb-4">
-        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+    <div class="bg-white rounded-lg shadow mb-8">
+        <div class="px-6 py-4 border-b border-gray-100">
+            <h2 class="text-lg font-semibold text-blue-700 flex items-center gap-2">
+                <i class="fas fa-table"></i> All Lesson Schedules
+            </h2>
             <h6 class="m-0 font-weight-bold text-primary">All Lesson Schedules</h6>
         </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Centre</th>
-                            <th>Day</th>
-                            <th>Section</th>
-                            <th>Teacher</th>
-                            <th>Start Date</th>
-                            <th>End Date</th>
-                            <th>Status</th>
-                            <th>Actions</th>
+        <div class="px-6 py-4 overflow-x-auto">
+            <table class="min-w-full bg-white border border-gray-200 rounded-lg overflow-hidden">
+                <thead class="bg-blue-50 text-blue-900">
+                    <tr>
+                        <th class="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider border-b">ID</th>
+                        <th class="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider border-b">Centre</th>
+                        <th class="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider border-b">Day</th>
+                        <th class="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider border-b">Section</th>
+                        <th class="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider border-b">Teacher</th>
+                        <th class="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider border-b">Start Date</th>
+                        <th class="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider border-b">End Date</th>
+                        <th class="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider border-b">Status</th>
+                        <th class="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider border-b">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    @forelse($lessonSchedules as $schedule)
+                        <tr class="hover:bg-blue-50 transition">
+                            <td class="px-4 py-2 whitespace-nowrap">{{ $schedule->id }}</td>
+                            <td class="px-4 py-2 whitespace-nowrap">{{ $schedule->centre->name ?? '-' }}</td>
+                            <td class="px-4 py-2 whitespace-nowrap">{{ $schedule->day_of_week }}</td>
+                            <td class="px-4 py-2 whitespace-nowrap">{{ $schedule->lessonSection->name ?? '-' }}</td>
+                            <td class="px-4 py-2 whitespace-nowrap">{{ $schedule->teacher->user->name ?? '-' }}</td>
+                            <td class="px-4 py-2 whitespace-nowrap">{{ $schedule->start_date }}</td>
+                            <td class="px-4 py-2 whitespace-nowrap">{{ $schedule->end_date ?? '-' }}</td>
+                            <td class="px-4 py-2">
+                                @if($schedule->is_active)
+                                    <span class="inline-block px-2 py-1 text-xs font-bold rounded bg-green-100 text-green-700">Active</span>
+                                @else
+                                    <span class="inline-block px-2 py-1 text-xs font-bold rounded bg-red-100 text-red-700">Inactive</span>
+                                @endif
+                            </td>
+                            <td class="px-4 py-2 whitespace-nowrap flex gap-1">
+                                <a href="{{ route('lesson-schedules.show', $schedule->id) }}" class="inline-flex items-center justify-center w-8 h-8 rounded bg-blue-100 text-blue-700 hover:bg-blue-200 transition" title="View"><i class="fas fa-eye"></i></a>
+                                <a href="{{ route('lesson-schedules.edit', $schedule->id) }}" class="inline-flex items-center justify-center w-8 h-8 rounded bg-yellow-100 text-yellow-700 hover:bg-yellow-200 transition" title="Edit"><i class="fas fa-edit"></i></a>
+                                <a href="{{ route('lesson-schedules.assign-students', $schedule->id) }}" class="inline-flex items-center justify-center w-8 h-8 rounded bg-orange-100 text-orange-700 hover:bg-orange-200 transition" title="Assign Students"><i class="fas fa-user-plus"></i></a>
+                                <a href="{{ route('lesson-attendances.take', $schedule->id) }}" class="inline-flex items-center justify-center w-8 h-8 rounded bg-green-100 text-green-700 hover:bg-green-200 transition" title="Take Attendance"><i class="fas fa-clipboard-check"></i></a>
+                                <form action="{{ route('lesson-schedules.destroy', $schedule->id) }}" method="POST" class="inline-block" onsubmit="return confirm('Are you sure?');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="inline-flex items-center justify-center w-8 h-8 rounded bg-red-100 text-red-700 hover:bg-red-200 transition" title="Delete"><i class="fas fa-trash"></i></button>
+                                </form>
+                            </td>
                         </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($lessonSchedules as $schedule)
-                            <tr>
-                                <td>{{ $schedule->id }}</td>
-                                <td>{{ $schedule->centre->name }}</td>
-                                <td>{{ $schedule->day_of_week }}</td>
-                                <td>{{ $schedule->lessonSection->name }} ({{ $schedule->lessonSection->start_time }} - {{ $schedule->lessonSection->end_time }})</td>
-                                <td>{{ $schedule->teacher->user->name ?? 'N/A' }}</td>
-                                <td>{{ $schedule->start_date->format('d M Y') }}</td>
-                                <td>{{ $schedule->end_date ? $schedule->end_date->format('d M Y') : 'Ongoing' }}</td>
-                                <td>
-                                    <span class="badge badge-{{ $schedule->is_active ? 'success' : 'danger' }}">
-                                        {{ $schedule->is_active ? 'Active' : 'Inactive' }}
-                                    </span>
-                                </td>
-                                <td>
-                                    <a href="{{ route('lesson-schedules.show', $schedule->id) }}" class="btn btn-info btn-sm">
-                                        <i class="fas fa-eye"></i>
-                                    </a>
-                                    <a href="{{ route('lesson-schedules.edit', $schedule->id) }}" class="btn btn-primary btn-sm">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
-                                    <a href="{{ route('lesson-schedules.assign-students', $schedule->id) }}" class="btn btn-warning btn-sm">
-                                        <i class="fas fa-user-plus"></i>
-                                    </a>
-                                    <a href="{{ route('lesson-attendances.take', $schedule->id) }}" class="btn btn-success btn-sm">
-                                        <i class="fas fa-clipboard-check"></i>
-                                    </a>
-                                    <form action="{{ route('lesson-schedules.destroy', $schedule->id) }}" method="POST" class="d-inline">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this lesson schedule?')">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </form>
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="9" class="text-center">No lesson schedules found.</td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-            
+                    @empty
+                        <tr>
+                            <td colspan="9" class="px-4 py-6 text-center text-gray-500">No lesson schedules found.</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
             <div class="mt-3">
-                {{ $lessonSchedules->withQueryString()->links() }}
+                {{-- Pagination links removed because $lessonSchedules is not paginated --}}
             </div>
         </div>
     </div>

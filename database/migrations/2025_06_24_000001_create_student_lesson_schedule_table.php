@@ -11,10 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('student_lesson_schedule', function (Blueprint $table) {
+        Schema::create('student_lesson_schedules', function (Blueprint $table) {
             $table->id();
             $table->foreignId('student_id')->constrained()->onDelete('cascade');
             $table->foreignId('lesson_schedule_id')->constrained()->onDelete('cascade');
+            $table->date('enrollment_date')->nullable();
+            $table->date('end_date')->nullable();
+            $table->boolean('is_active')->default(true);
             $table->timestamps();
             
             // Add a unique constraint to prevent duplicate assignments
@@ -27,6 +30,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('student_lesson_schedule');
+        Schema::dropIfExists('student_lesson_schedules');
     }
 };

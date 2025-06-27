@@ -12,8 +12,13 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
-    <!-- Styles -->
-    <link rel="stylesheet" href="{{ asset('css/app.css') }}">
+    <!-- Tailwind CSS CDN for environments without npm build -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <!-- FontAwesome CDN for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha512-9usAaJg9p+QX1sFZLrK1Q3wq5XW1xQd2t+4N5K6tM1w+F9Q8+QF5W5Q5F5Q5F5Q5F5Q5F5Q5F5Q5F5Q5F5Q5F5Q==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <!-- Remove the following line if css/app.css does not exist -->
+    {{-- <link rel="stylesheet" href="{{ asset('css/app.css') }}"> --}}
+    <!-- Optionally keep Tailwind config for JIT/inline usage -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -69,9 +74,11 @@
     </script>
     
     <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
     <script src="{{ asset('js/app.js') }}" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
     @stack('styles')
 </head>

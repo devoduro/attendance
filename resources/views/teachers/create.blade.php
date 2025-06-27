@@ -102,37 +102,9 @@
                     @enderror
                 </div>
                 
-                <div class="col-span-2">
-                    <label for="subjects" class="block text-sm font-medium text-gray-700 mb-1">Assigned Subjects</label>
-                    <select name="subjects[]" id="subjects" multiple
-                        class="w-full border-gray-300 rounded-md shadow-sm focus:border-primary-300 focus:ring focus:ring-primary-200 focus:ring-opacity-50">
-                        @foreach($subjects as $subject)
-                            <option value="{{ $subject->id }}" {{ in_array($subject->id, old('subjects', [])) ? 'selected' : '' }}>
-                                {{ $subject->name }} ({{ $subject->code }})
-                            </option>
-                        @endforeach
-                    </select>
-                    <p class="mt-1 text-sm text-gray-500">Hold Ctrl (or Cmd) to select multiple subjects</p>
-                    @error('subjects')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                    @enderror
-                </div>
+                <!-- Subjects section removed -->
                 
-                <div class="col-span-2">
-                    <label for="classes" class="block text-sm font-medium text-gray-700 mb-1">Assigned Classes</label>
-                    <select name="classes[]" id="classes" multiple
-                        class="w-full border-gray-300 rounded-md shadow-sm focus:border-primary-300 focus:ring focus:ring-primary-200 focus:ring-opacity-50">
-                        @foreach($classes as $class)
-                            <option value="{{ $class->id }}" {{ in_array($class->id, old('classes', [])) ? 'selected' : '' }}>
-                                {{ $class->name }}
-                            </option>
-                        @endforeach
-                    </select>
-                    <p class="mt-1 text-sm text-gray-500">Hold Ctrl (or Cmd) to select multiple classes</p>
-                    @error('classes')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                    @enderror
-                </div>
+                <!-- Classes selection section removed -->
                 
                 <div class="col-span-2">
                     <label for="bio" class="block text-sm font-medium text-gray-700 mb-1">Bio/Description</label>

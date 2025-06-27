@@ -3,149 +3,156 @@
 @section('title', 'Assign Students to Lesson Schedule')
 
 @section('content')
-<div class="container-fluid">
-    <div class="d-sm-flex align-items-center justify-content-between mb-4">
-        <h1 class="h3 mb-0 text-gray-800">Assign Students to Lesson Schedule</h1>
-        <a href="{{ route('lesson-schedules.show', $lessonSchedule->id) }}" class="d-none d-sm-inline-block btn btn-sm btn-secondary shadow-sm">
-            <i class="fas fa-arrow-left fa-sm text-white-50"></i> Back to Schedule
+    <div class="flex flex-col md:flex-row items-center justify-between mb-6">
+        <h1 class="text-2xl font-bold text-gray-800 mb-4 md:mb-0">Assign Students to Lesson Schedule</h1>
+        <a href="{{ route('lesson-schedules.show', $lessonSchedule->id) }}" class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-md text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+            <i class="fas fa-arrow-left mr-2"></i> Back to Schedule
         </a>
     </div>
 
     @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            {{ session('success') }}
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
+        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
+            <span class="block sm:inline">{{ session('success') }}</span>
+            <button type="button" class="absolute top-0 bottom-0 right-0 px-4 py-3" onclick="this.parentElement.style.display='none'">
+                <span class="text-green-500">&times;</span>
             </button>
         </div>
     @endif
 
-    <div class="row">
-        <div class="col-lg-12">
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Schedule Information</h6>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-4">
-                            <p><strong>Centre:</strong> {{ $lessonSchedule->centre->name }}</p>
-                        </div>
-                        <div class="col-md-4">
-                            <p><strong>Day:</strong> {{ $lessonSchedule->day_of_week }}</p>
-                        </div>
-                        <div class="col-md-4">
-                            <p><strong>Time:</strong> {{ $lessonSchedule->lessonSection->start_time }} - {{ $lessonSchedule->lessonSection->end_time }}</p>
-                        </div>
+    <div class="mb-6">
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h3 class="text-lg font-medium text-gray-900">Schedule Information</h3>
+            </div>
+            <div class="p-4">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <p class="text-sm"><span class="font-medium">Centre:</span> {{ $lessonSchedule->centre->name }}</p>
                     </div>
-                    <div class="row">
-                        <div class="col-md-4">
-                            <p><strong>Teacher:</strong> {{ $lessonSchedule->teacher->user->name ?? 'N/A' }}</p>
-                        </div>
-                        <div class="col-md-4">
-                            <p><strong>Start Date:</strong> {{ $lessonSchedule->start_date->format('d M Y') }}</p>
-                        </div>
-                        <div class="col-md-4">
-                            <p><strong>End Date:</strong> {{ $lessonSchedule->end_date ? $lessonSchedule->end_date->format('d M Y') : 'Ongoing' }}</p>
-                        </div>
+                    <div>
+                        <p class="text-sm"><span class="font-medium">Day:</span> {{ $lessonSchedule->day_of_week }}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm"><span class="font-medium">Time:</span> {{ $lessonSchedule->lessonSection->start_time }} - {{ $lessonSchedule->lessonSection->end_time }}</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                    <div>
+                        <p class="text-sm"><span class="font-medium">Teacher:</span> {{ $lessonSchedule->teacher->user->name ?? 'N/A' }}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm"><span class="font-medium">Start Date:</span> {{ $lessonSchedule->start_date->format('d M Y') }}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm"><span class="font-medium">End Date:</span> {{ $lessonSchedule->end_date ? $lessonSchedule->end_date->format('d M Y') : 'Ongoing' }}</p>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="row">
-        <div class="col-lg-12">
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Assign Students</h6>
-                </div>
-                <div class="card-body">
-                    <form action="{{ route('lesson-schedules.assign-students.store', $lessonSchedule->id) }}" method="POST">
-                        @csrf
-                        
-                        <div class="form-group">
-                            <label for="search">Search Students</label>
-                            <input type="text" class="form-control" id="search" placeholder="Type to search students...">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>Filter by Centre</label>
-                            <select class="form-control" id="centre-filter">
-                                <option value="">All Centres</option>
-                                @foreach($centres as $centre)
-                                    <option value="{{ $centre->id }}" {{ $centre->id == $lessonSchedule->centre_id ? 'selected' : '' }}>
-                                        {{ $centre->name }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-                        
-                        <div class="table-responsive">
-                            <table class="table table-bordered" id="studentsTable" width="100%" cellspacing="0">
-                                <thead>
-                                    <tr>
-                                        <th>
-                                            <div class="custom-control custom-checkbox">
-                                                <input type="checkbox" class="custom-control-input" id="selectAll">
-                                                <label class="custom-control-label" for="selectAll"></label>
+    <div class="mb-6">
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h3 class="text-lg font-medium text-gray-900">Assign Students</h3>
+            </div>
+            <div class="p-4">
+                <form action="{{ route('lesson-schedules.assign-students.store', $lessonSchedule->id) }}" method="POST">
+                    @csrf
+                    
+                    <div class="mb-4">
+                        <label for="search" class="block text-sm font-medium text-gray-700 mb-1">Search Students</label>
+                        <input type="text" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50" id="search" placeholder="Type to search students...">
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="centre-filter" class="block text-sm font-medium text-gray-700 mb-1">Filter by Centre</label>
+                        <select class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50" id="centre-filter">
+                            <option value="">All Centres</option>
+                            @foreach($centres as $centre)
+                                <option value="{{ $centre->id }}" {{ $centre->id == $lessonSchedule->centre_id ? 'selected' : '' }}>
+                                    {{ $centre->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200" id="studentsTable">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        <div class="flex items-center">
+                                            <input type="checkbox" class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" id="selectAll">
+                                            <label class="ml-2 text-xs font-medium text-gray-500 uppercase tracking-wider" for="selectAll">Select All</label>
+                                        </div>
+                                    </th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Age</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Centre</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">School</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Parent/Guardian</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                @foreach($students as $student)
+                                    <tr class="student-row hover:bg-gray-50" data-centre="{{ $student->centre_id }}">
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="flex items-center">
+                                                <input type="checkbox" class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 student-checkbox" 
+                                                    id="student{{ $student->id }}" 
+                                                    name="student_ids[]" 
+                                                    value="{{ $student->id }}"
+                                                    {{ in_array($student->id, $enrolledStudentIds) ? 'checked' : '' }}>
+                                                <label class="sr-only" for="student{{ $student->id }}">Select student</label>
                                             </div>
-                                        </th>
-                                        <th>ID</th>
-                                        <th>Name</th>
-                                        <th>Age</th>
-                                        <th>Centre</th>
-                                        <th>School</th>
-                                        <th>Parent/Guardian</th>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $student->id }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $student->user->name }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $student->getAge() }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $student->centre->name ?? 'N/A' }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $student->school_attending ?? 'N/A' }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $student->parent_guardian_name ?? 'N/A' }}</td>
                                     </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach($students as $student)
-                                        <tr class="student-row" data-centre="{{ $student->centre_id }}">
-                                            <td>
-                                                <div class="custom-control custom-checkbox">
-                                                    <input type="checkbox" class="custom-control-input student-checkbox" 
-                                                        id="student{{ $student->id }}" 
-                                                        name="student_ids[]" 
-                                                        value="{{ $student->id }}"
-                                                        {{ in_array($student->id, $enrolledStudentIds) ? 'checked' : '' }}>
-                                                    <label class="custom-control-label" for="student{{ $student->id }}"></label>
-                                                </div>
-                                            </td>
-                                            <td>{{ $student->id }}</td>
-                                            <td>{{ $student->user->name }}</td>
-                                            <td>{{ $student->getAge() }}</td>
-                                            <td>{{ $student->centre->name ?? 'N/A' }}</td>
-                                            <td>{{ $student->school_attending ?? 'N/A' }}</td>
-                                            <td>{{ $student->parent_guardian_name ?? 'N/A' }}</td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                        
-                        <div class="mt-3">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-save"></i> Save Assignments
-                            </button>
-                        </div>
-                    </form>
-                </div>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="mt-6">
+                        <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            <i class="fas fa-save mr-2"></i> Save Assignments
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
-</div>
 @endsection
 
 @section('scripts')
 <script>
     $(document).ready(function() {
-        // Initialize DataTable
+        // Initialize DataTable with Tailwind styling
         const table = $('#studentsTable').DataTable({
             "paging": true,
             "ordering": true,
             "info": true,
-            "searching": false
+            "searching": false,
+            "language": {
+                "paginate": {
+                    "previous": "<i class='fas fa-chevron-left'></i>",
+                    "next": "<i class='fas fa-chevron-right'></i>"
+                }
+            },
+            "drawCallback": function() {
+                // Apply Tailwind classes to pagination elements
+                $('.dataTables_paginate > .pagination').addClass('flex justify-center mt-4');
+                $('.dataTables_paginate .paginate_button').addClass('px-3 py-1 mx-1 text-sm rounded-md border border-gray-300');
+                $('.dataTables_paginate .paginate_button.current').addClass('bg-blue-600 text-white border-blue-600');
+                $('.dataTables_paginate .paginate_button:not(.current)').addClass('bg-white text-gray-700 hover:bg-gray-50');
+            }
         });
         
         // Handle select all checkbox

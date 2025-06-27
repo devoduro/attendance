@@ -43,124 +43,10 @@
                 </div>
                 @endrole
 
-                <!-- Class Management -->
-                @php
-                    $showClassesMenu = true;
-                    // For teachers, only show if they have assigned classes
-                    if (auth()->user()->hasRole('teacher')) {
-                        $teacher = auth()->user()->teacherProfile;
-                        $hasAssignedClasses = $teacher ? $teacher->classes()->exists() : false;
-                        $showClassesMenu = $hasAssignedClasses || auth()->user()->hasRole('admin');
-                    }
-                @endphp
-                @if($showClassesMenu)
-                <div x-data="{ open: {{ request()->routeIs('classes.*') ? 'true' : 'false' }} }">
-                    <button @click="open = !open" class="text-gray-600 hover:bg-gray-50 hover:text-gray-900 group w-full flex items-center px-2 py-2 text-sm font-medium rounded-md">
-                        <svg class="mr-3 h-5 w-5 text-gray-400 group-hover:text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                        </svg>
-                        Class Management
-                        <svg class="ml-auto h-5 w-5 transform transition-transform duration-200" :class="{'rotate-90': open, 'rotate-0': !open}" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                        </svg>
-                    </button>
-                    <div x-show="open" class="mt-1 space-y-1 pl-7">
-                        <a href="{{ route('classes.index') }}" class="{{ request()->routeIs('classes.index') ? 'bg-primary-50 text-primary-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }} group flex items-center px-2 py-2 text-sm font-medium rounded-md">
-                            @if(auth()->user()->hasRole('teacher'))
-                                My Classes
-                            @else
-                                All Classes
-                            @endif
-                        </a>
-                        @role('admin')
-                        <a href="{{ route('classes.create') }}" class="{{ request()->routeIs('classes.create') ? 'bg-primary-50 text-primary-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }} group flex items-center px-2 py-2 text-sm font-medium rounded-md">
-                            Add New Class
-                        </a>
-                        @endrole
-                    </div>
-                </div>
-                @endif
+                <!-- Class Management section removed as it's not needed in this project -->
 
-                <!-- Subject Management -->
-                @php
-                    $showSubjectsMenu = true;
-                    // For teachers, only show if they have assigned subjects
-                    if (auth()->user()->hasRole('teacher')) {
-                        $teacher = auth()->user()->teacherProfile;
-                        $hasAssignedSubjects = $teacher ? $teacher->subjects()->exists() : false;
-                        $showSubjectsMenu = $hasAssignedSubjects || auth()->user()->hasRole('admin');
-                    }
-                @endphp
-                @if($showSubjectsMenu)
-                <div x-data="{ open: {{ request()->routeIs('subjects.*') ? 'true' : 'false' }} }">
-                    <button @click="open = !open" class="text-gray-600 hover:bg-gray-50 hover:text-gray-900 group w-full flex items-center px-2 py-2 text-sm font-medium rounded-md">
-                        <svg class="mr-3 h-5 w-5 text-gray-400 group-hover:text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                        </svg>
-                        Subject Management
-                        <svg class="ml-auto h-5 w-5 transform transition-transform duration-200" :class="{'rotate-90': open, 'rotate-0': !open}" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                        </svg>
-                    </button>
-                    <div x-show="open" class="mt-1 space-y-1 pl-7">
-                        <a href="{{ route('subjects.index') }}" class="{{ request()->routeIs('subjects.index') ? 'bg-primary-50 text-primary-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }} group flex items-center px-2 py-2 text-sm font-medium rounded-md">
-                            @if(auth()->user()->hasRole('teacher'))
-                                My Subjects
-                            @else
-                                All Subjects
-                            @endif
-                        </a>
-                        @role('admin')
-                        <a href="{{ route('subjects.create') }}" class="{{ request()->routeIs('subjects.create') ? 'bg-primary-50 text-primary-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }} group flex items-center px-2 py-2 text-sm font-medium rounded-md">
-                            Add New Subject
-                        </a>
-                        @endrole
-                    </div>
-                </div>
-                @endif
+                <!-- Subject Management section removed as it's not needed in this project -->
 
-                <!-- Assessment Platform -->
-                <div x-data="{ open: {{ request()->routeIs('exams.*') || request()->routeIs('questions.*') || request()->routeIs('question-categories.*') || request()->routeIs('question-tags.*') || request()->routeIs('exam-templates.*') ? 'true' : 'false' }} }">
-                    <button @click="open = !open" class="text-gray-600 hover:bg-gray-50 hover:text-gray-900 group w-full flex items-center px-2 py-2 text-sm font-medium rounded-md">
-                        <svg class="mr-3 h-5 w-5 text-gray-400 group-hover:text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-                        </svg>
-                        Assessment Platform
-                        <svg class="ml-auto h-5 w-5 transform transition-transform duration-200" :class="{'rotate-90': open, 'rotate-0': !open}" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                        </svg>
-                    </button>
-                    <div x-show="open" class="mt-1 space-y-1 pl-7">
-                        @role('admin|teacher')
-                        <a href="{{ route('exams.index') }}" class="{{ request()->routeIs('exams.index') ? 'bg-primary-50 text-primary-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }} group flex items-center px-2 py-2 text-sm font-medium rounded-md">
-                            Exams
-                        </a>
-                        @role('teacher')
-                        <a href="{{ route('exams.index') }}#manage-questions" class="{{ request()->is('exams/*/questions') ? 'bg-primary-50 text-primary-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }} group flex items-center px-2 py-2 text-sm font-medium rounded-md">
-                            <span class="ml-2">Manage Exam Questions</span>
-                        </a>
-                        @endrole
-                        <a href="{{ route('questions.index') }}" class="{{ request()->routeIs('questions.index') ? 'bg-primary-50 text-primary-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }} group flex items-center px-2 py-2 text-sm font-medium rounded-md">
-                            Question Bank
-                        </a>
-                        <a href="{{ route('question-categories.index') }}" class="{{ request()->routeIs('question-categories.index') ? 'bg-primary-50 text-primary-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }} group flex items-center px-2 py-2 text-sm font-medium rounded-md">
-                            Question Categories
-                        </a>
-                        <a href="{{ route('question-tags.index') }}" class="{{ request()->routeIs('question-tags.index') ? 'bg-primary-50 text-primary-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }} group flex items-center px-2 py-2 text-sm font-medium rounded-md">
-                            Question Tags
-                        </a>
-                        <a href="{{ route('exam-templates.index') }}" class="{{ request()->routeIs('exam-templates.index') ? 'bg-primary-50 text-primary-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }} group flex items-center px-2 py-2 text-sm font-medium rounded-md">
-                            Exam Templates
-                        </a>
-                        @endrole
-                        
-                        @role('student')
-                        <a href="{{ route('student.exams.index') }}" class="{{ request()->routeIs('student.exams.index') ? 'bg-primary-50 text-primary-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }} group flex items-center px-2 py-2 text-sm font-medium rounded-md">
-                            My Exams
-                        </a>
-                        @endrole
-                    </div>
-                </div>
 
                 <!-- Teacher Management -->
                 <div x-data="{ open: {{ request()->routeIs('teachers.*') ? 'true' : 'false' }} }">
@@ -200,6 +86,69 @@
                         </a>
                         <a href="{{ route('students.create') }}" class="{{ request()->routeIs('students.create') ? 'bg-primary-50 text-primary-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }} group flex items-center px-2 py-2 text-sm font-medium rounded-md">
                             Add New Student
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Centre Management -->
+                <div x-data="{ open: {{ request()->routeIs('centres.*') ? 'true' : 'false' }} }">
+                    <button @click="open = !open" class="text-gray-600 hover:bg-gray-50 hover:text-gray-900 group w-full flex items-center px-2 py-2 text-sm font-medium rounded-md">
+                        <svg class="mr-3 h-5 w-5 text-gray-400 group-hover:text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                        </svg>
+                        Centre Management
+                        <svg class="ml-auto h-5 w-5 transform transition-transform duration-200" :class="{'rotate-90': open, 'rotate-0': !open}" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        </svg>
+                    </button>
+                    <div x-show="open" class="mt-1 space-y-1 pl-7">
+                        <a href="{{ route('centres.index') }}" class="{{ request()->routeIs('centres.index') ? 'bg-primary-50 text-primary-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }} group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+                            All Centres
+                        </a>
+                        <a href="{{ route('centres.create') }}" class="{{ request()->routeIs('centres.create') ? 'bg-primary-50 text-primary-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }} group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+                            Add New Centre
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Lesson Management -->
+                <div x-data="{ open: {{ request()->routeIs('lesson-sections.*') || request()->routeIs('lesson-schedules.*') || request()->routeIs('lesson-attendances.*') ? 'true' : 'false' }} }">
+                    <button @click="open = !open" class="text-gray-600 hover:bg-gray-50 hover:text-gray-900 group w-full flex items-center px-2 py-2 text-sm font-medium rounded-md">
+                        <svg class="mr-3 h-5 w-5 text-gray-400 group-hover:text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                        </svg>
+                        Lesson Management
+                        <svg class="ml-auto h-5 w-5 transform transition-transform duration-200" :class="{'rotate-90': open, 'rotate-0': !open}" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        </svg>
+                    </button>
+                    <div x-show="open" class="mt-1 space-y-1 pl-7">
+                        <a href="{{ route('lesson-sections.index') }}" class="{{ request()->routeIs('lesson-sections.index') ? 'bg-primary-50 text-primary-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }} group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+                            Lesson Sections
+                        </a>
+                        <a href="{{ route('lesson-attendances.index') }}" class="{{ request()->routeIs('lesson-attendances.index') ? 'bg-primary-50 text-primary-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }} group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+                            Lesson Attendance
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Schedule Management -->
+                <div x-data="{ open: {{ request()->routeIs('lesson-schedules.*') ? 'true' : 'false' }} }">
+                    <button @click="open = !open" class="text-gray-600 hover:bg-gray-50 hover:text-gray-900 group w-full flex items-center px-2 py-2 text-sm font-medium rounded-md">
+                        <svg class="mr-3 h-5 w-5 text-gray-400 group-hover:text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        Schedule Management
+                        <svg class="ml-auto h-5 w-5 transform transition-transform duration-200" :class="{'rotate-90': open, 'rotate-0': !open}" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        </svg>
+                    </button>
+                    <div x-show="open" class="mt-1 space-y-1 pl-7">
+                        <a href="{{ route('lesson-schedules.index') }}" class="{{ request()->routeIs('lesson-schedules.index') ? 'bg-primary-50 text-primary-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }} group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+                            All Schedules
+                        </a>
+                        <a href="{{ route('lesson-schedules.create') }}" class="{{ request()->routeIs('lesson-schedules.create') ? 'bg-primary-50 text-primary-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }} group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+                            Create Schedule
                         </a>
                     </div>
                 </div>

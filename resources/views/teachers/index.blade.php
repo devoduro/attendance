@@ -44,17 +44,7 @@
                 </select>
             </div>
 
-            <div>
-                <label for="subject" class="block text-sm font-medium text-gray-700 mb-1">Subject</label>
-                <select name="subject" id="subject" class="w-full border-gray-300 rounded-md shadow-sm focus:border-primary-300 focus:ring focus:ring-primary-200 focus:ring-opacity-50">
-                    <option value="">All Subjects</option>
-                    @foreach(\App\Models\Subject::where('status', 'active')->get() as $subject)
-                        <option value="{{ $subject->id }}" {{ request('subject') == $subject->id ? 'selected' : '' }}>
-                            {{ $subject->name }}
-                        </option>
-                    @endforeach
-                </select>
-            </div>
+            <!-- Subjects filter removed -->
 
             <div>
                 <label for="class" class="block text-sm font-medium text-gray-700 mb-1">Class</label>
@@ -139,12 +129,8 @@
                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Department
                     </th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Subjects
-                    </th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Classes
-                    </th>
+                    <!-- Subjects column removed -->
+                    <!-- Classes column removed -->
                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Status
                     </th>
@@ -171,12 +157,8 @@
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {{ $teacher->department->name ?? 'N/A' }}
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {{ $teacher->subjects->count() }}
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {{ $teacher->classes->count() }}
-                    </td>
+                    <!-- Subjects count cell removed -->
+                    <!-- Classes count cell removed -->
                     <td class="px-6 py-4 whitespace-nowrap">
                         @can('update', $teacher)
                         <form action="{{ route('teachers.toggle-status', $teacher) }}" method="POST" class="inline">

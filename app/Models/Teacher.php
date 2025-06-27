@@ -92,22 +92,9 @@ class Teacher extends Model
         return $this->belongsTo(User::class);
     }
 
-    /**
-     * Get the subjects taught by the teacher.
-     */
-    public function subjects()
-    {
-        return $this->belongsToMany(Subject::class, 'teacher_subjects');
-    }
+    // Subjects relationship removed
 
-    /**
-     * Get the classes taught by the teacher.
-     */
-    public function classes()
-    {
-        return $this->belongsToMany(SchoolClass::class, 'teacher_classes', 'teacher_id', 'class_id')
-            ->withPivot('is_class_teacher', 'academic_year');
-    }
+    // Classes relationship removed
 
     /**
      * Get the department of the teacher.

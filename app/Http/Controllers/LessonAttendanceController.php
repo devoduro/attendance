@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\LessonAttendancesExport;
 use App\Models\LessonAttendance;
 use App\Models\LessonSchedule;
 use App\Models\Student;
@@ -9,19 +10,130 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\AttendanceNotification;
+use Maatwebsite\Excel\Facades\Excel;
+use PDF;
 
 class LessonAttendanceController extends Controller
 {
     /**
      * Display a listing of the attendances.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $attendances = LessonAttendance::with(['student.user', 'lessonSchedule.lessonSection'])
-            ->orderBy('attendance_date', 'desc')
-            ->paginate(20);
+        $query = LessonAttendance::with(['student.user', 'lessonSchedule.lessonSection']);
+        
+        // Apply filters if provided
+        if ($request->filled('centre_id')) {
+            $query->whereHas('lessonSchedule', function($q) use ($request) {
+                $q->where('centre_id', $request->centre_id);
+            });
+        }
+        
+        if ($request->filled('teacher_id')) {
+            $query->whereHas('lessonSchedule', function($q) use ($request) {
+                $q->where('teacher_id', $request->teacher_id);
+            });
+        }
+        
+        if ($request->filled('student_id')) {
+            $query->where('student_id', $request->student_id);
+        }
+        
+        if ($request->filled('date_from')) {
+            $query->where('attendance_date', '>=', $request->date_from);
+        }
+        
+        if ($request->filled('date_to')) {
+            $query->where('attendance_date', '<=', $request->date_to);
+        }
+        
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+        
+        // Get attendance counts for statistics
+        $presentCount = (clone $query)->where('status', 'present')->count();
+        $absentCount = (clone $query)->where('status', 'absent')->count();
+        $lateCount = (clone $query)->where('status', 'late')->count();
+        
+        // Get paginated results
+        $attendances = $query->orderBy('attendance_date', 'desc')->paginate(20);
+        
+        $centres = \App\Models\Centre::where('is_active', true)->get();
+        $teachers = \App\Models\Teacher::with('user')->where('status', 'active')->get();
+        $students = \App\Models\Student::with('user')->where('status', 'active')->get();
             
-        return view('lesson-attendances.index', compact('attendances'));
+        return view('lesson-attendances.index', compact(
+            'attendances', 
+            'centres', 
+            'teachers', 
+            'students', 
+            'presentCount', 
+            'absentCount', 
+            'lateCount'
+        ));
+    }
+    
+    /**
+     * Export attendance records based on filters.
+     */
+    public function export(Request $request)
+    {
+        $format = $request->input('format', 'excel');
+        
+        $query = LessonAttendance::with([
+            'student.user', 
+            'lessonSchedule.lessonSection', 
+            'lessonSchedule.class',
+            'lessonSchedule.teacher.user'
+        ]);
+        
+        // Apply filters if provided
+        if ($request->filled('centre_id')) {
+            $query->whereHas('lessonSchedule', function($q) use ($request) {
+                $q->where('centre_id', $request->centre_id);
+            });
+        }
+        
+        if ($request->filled('teacher_id')) {
+            $query->whereHas('lessonSchedule', function($q) use ($request) {
+                $q->where('teacher_id', $request->teacher_id);
+            });
+        }
+        
+        if ($request->filled('student_id')) {
+            $query->where('student_id', $request->student_id);
+        }
+        
+        if ($request->filled('date_from')) {
+            $query->where('attendance_date', '>=', $request->date_from);
+        }
+        
+        if ($request->filled('date_to')) {
+            $query->where('attendance_date', '<=', $request->date_to);
+        }
+        
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+        
+        $fileName = 'attendance_records_' . date('Y-m-d_His');
+        
+        switch ($format) {
+            case 'csv':
+                return Excel::download(new LessonAttendancesExport($query), $fileName . '.csv', \Maatwebsite\Excel\Excel::CSV);
+            
+            case 'pdf':
+                // For PDF export, we need to get the data first
+                $attendances = $query->get();
+                
+                $pdf = PDF::loadView('exports.lesson-attendances-pdf', compact('attendances'));
+                return $pdf->download($fileName . '.pdf');
+            
+            case 'excel':
+            default:
+                return Excel::download(new LessonAttendancesExport($query), $fileName . '.xlsx');
+        }
     }
     
     /**
@@ -138,12 +250,15 @@ class LessonAttendanceController extends Controller
         $lessonSchedule->load(['students.user', 'lessonSection', 'centre']);
         
         // Check if attendance records already exist for this date and lesson schedule
-        $existingAttendances = LessonAttendance::where('lesson_schedule_id', $lessonSchedule->id)
+        $attendances = LessonAttendance::where('lesson_schedule_id', $lessonSchedule->id)
             ->where('attendance_date', $date)
             ->get()
             ->keyBy('student_id');
+        
+        // Convert date string to Carbon instance for the view
+        $attendanceDate = Carbon::parse($date);
             
-        return view('lesson-attendances.take', compact('lessonSchedule', 'date', 'existingAttendances'));
+        return view('lesson-attendances.take', compact('lessonSchedule', 'attendanceDate', 'attendances'));
     }
     
     /**
@@ -152,13 +267,13 @@ class LessonAttendanceController extends Controller
     public function storeAttendance(Request $request, LessonSchedule $lessonSchedule)
     {
         $request->validate([
-            'date' => 'required|date',
+            'attendance_date' => 'required|date',
             'attendance' => 'required|array',
             'attendance.*.student_id' => 'required|exists:students,id',
             'attendance.*.status' => 'required|in:present,absent',
         ]);
         
-        $date = $request->input('date');
+        $date = $request->input('attendance_date');
         $attendanceData = $request->input('attendance');
         
         foreach ($attendanceData as $data) {
@@ -188,6 +303,55 @@ class LessonAttendanceController extends Controller
         
         return redirect()->route('lesson-attendances.daily', ['date' => $date])
             ->with('success', 'Attendance recorded successfully.');
+    }
+    
+    /**
+     * Update attendance status via AJAX.
+     */
+    public function updateStatus(Request $request, LessonSchedule $lessonSchedule)
+    {
+        $request->validate([
+            'student_id' => 'required|exists:students,id',
+            'status' => 'required|in:present,absent',
+            'attendance_date' => 'required|date',
+        ]);
+        
+        $studentId = $request->input('student_id');
+        $status = $request->input('status');
+        $date = $request->input('attendance_date');
+        
+        $student = Student::findOrFail($studentId);
+        
+        // Find or create attendance record
+        $attendance = LessonAttendance::updateOrCreate(
+            [
+                'student_id' => $studentId,
+                'lesson_schedule_id' => $lessonSchedule->id,
+                'attendance_date' => $date,
+            ],
+            [
+                'status' => $status,
+                'check_in_time' => $status === 'present' ? now() : null,
+            ]
+        );
+        
+        $notificationSent = false;
+        
+        // Send notification if not already sent
+        if (!$attendance->notification_sent) {
+            $this->sendAttendanceNotification($attendance);
+            $attendance->notification_sent = true;
+            $attendance->save();
+            $notificationSent = true;
+        }
+        
+        return response()->json([
+            'success' => true,
+            'student_name' => $student->user->name,
+            'status' => $status,
+            'check_in_time' => $status === 'present' ? now()->format('H:i') : null,
+            'notification_sent' => $notificationSent,
+        ]);
     }
     
     /**

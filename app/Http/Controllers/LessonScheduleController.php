@@ -158,23 +158,18 @@ class LessonScheduleController extends Controller
     {
         $lessonSchedule->load(['centre', 'students']);
         
+        // Get all active centres for filtering
+        $centres = \App\Models\Centre::where('is_active', true)->orderBy('name')->get();
+        
         // Get students from the same centre
         $students = \App\Models\Student::where('centre_id', $lessonSchedule->centre_id)
             ->where('status', 'active')
-            ->with('user')
-            ->get()
-            ->map(function ($student) {
-                return [
-                    'id' => $student->id,
-                    'name' => $student->user->name,
-                    'enrollment_code' => $student->enrollment_code
-                ];
-            })
-            ->pluck('name', 'id');
-            
+            ->with(['user', 'centre'])
+            ->get();
+        
         $enrolledStudentIds = $lessonSchedule->students->pluck('id')->toArray();
         
-        return view('lesson-schedules.assign-students', compact('lessonSchedule', 'students', 'enrolledStudentIds'));
+        return view('lesson-schedules.assign-students', compact('lessonSchedule', 'students', 'enrolledStudentIds', 'centres'));
     }
     
     /**

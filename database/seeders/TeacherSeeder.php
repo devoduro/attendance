@@ -28,7 +28,7 @@ class TeacherSeeder extends Seeder
         }
         
         // Qualifications and specializations
-        $qualifications = array(
+        $qualifications = [
             'PhD in Education',
             'Master of Education',
             'Bachelor of Education',
@@ -37,7 +37,7 @@ class TeacherSeeder extends Seeder
             'Master of Science',
             'Teaching Certificate',
             'Postgraduate Diploma in Education'
-        );
+        ];
         
         // Create teacher profiles for each teacher user
         foreach ($teacherUsers as $index => $user) {

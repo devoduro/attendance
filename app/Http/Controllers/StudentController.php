@@ -5,8 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Student;
 use App\Models\User;
 use App\Models\SchoolClass;
-use App\Models\Program;
+// Program model import removed
 use App\Models\AcademicRecord;
+use App\Exports\StudentsExport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
@@ -25,14 +26,13 @@ class StudentController extends Controller
     public function index(Request $request)
     {
         $query = $request->input('query');
-        $programId = $request->input('program_id');
+        // Program ID parameter removed
         $classId = $request->input('class_id');
         
         // Initialize variables to avoid undefined variable errors
-        $selectedProgram = null;
         $selectedClass = null;
         
-        $studentsQuery = Student::with(['user', 'class', 'program', 'house']);
+        $studentsQuery = Student::with(['user', 'class', 'house']);
         
         // Restrict teachers to only see students assigned to their classes
         // Restrict students to only see their classmates
@@ -86,11 +86,7 @@ class StudentController extends Controller
             }
         }
         
-        // Apply program filter if program_id parameter exists
-        if ($programId) {
-            $studentsQuery->where('program_id', $programId);
-            $selectedProgram = Program::find($programId);
-        }
+        // Program filtering removed
         
         // Apply class filter if class_id parameter exists
         if ($classId) {
@@ -113,18 +109,15 @@ class StudentController extends Controller
         
         $students = $studentsQuery->orderBy('created_at', 'desc')->paginate(15);
         
-        // Get all active programs for the filter dropdown
-        $programs = Program::where('status', 'active')->orderBy('name')->get();
+        // Programs removed
         
         // Get all active classes for the filter dropdown
         $classes = SchoolClass::where('status', 'active')->get();
         
         return view('students.index', compact(
             'students', 
-            'programs', 
             'classes', 
             'query',
-            'selectedProgram',
             'selectedClass'
         ));
     }
@@ -137,10 +130,83 @@ class StudentController extends Controller
     public function create()
     {
         $classes = SchoolClass::where('status', 'active')->get();
-        $programs = Program::where('status', 'active')->get();
-        $houses = \App\Models\House::where('status', 'active')->get();
         
-        return view('students.create', compact('classes', 'programs', 'houses'));
+        return view('students.create', compact('classes'));
+    }
+
+    /**
+     * Handle bulk actions on multiple students.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function bulkActions(Request $request)
+    {
+        $request->validate([
+            'bulk_action' => 'required|string|in:activate,deactivate,export,delete',
+            'selected_students' => 'required|array',
+            'selected_students.*' => 'exists:students,id',
+        ]);
+
+        $action = $request->input('bulk_action');
+        $studentIds = $request->input('selected_students');
+        $count = count($studentIds);
+
+        switch ($action) {
+            case 'activate':
+                Student::whereIn('id', $studentIds)->update(['status' => 'active']);
+                return redirect()->route('students.index')
+                    ->with('success', "{$count} students have been activated successfully.");
+
+            case 'deactivate':
+                Student::whereIn('id', $studentIds)->update(['status' => 'inactive']);
+                return redirect()->route('students.index')
+                    ->with('success', "{$count} students have been deactivated successfully.");
+
+            case 'delete':
+                // Check for related records before deletion
+                $cannotDelete = [];
+                foreach ($studentIds as $studentId) {
+                    $student = Student::find($studentId);
+                    if ($student && $student->hasRelatedRecords()) {
+                        $cannotDelete[] = $student->user->name;
+                    }
+                }
+
+                if (!empty($cannotDelete)) {
+                    return redirect()->route('students.index')
+                        ->with('error', "The following students cannot be deleted because they have related records: " . implode(', ', $cannotDelete));
+                }
+
+                // Delete students that can be deleted
+                DB::beginTransaction();
+                try {
+                    foreach ($studentIds as $studentId) {
+                        $student = Student::find($studentId);
+                        if ($student) {
+                            // Delete associated user account
+                            $userId = $student->user_id;
+                            $student->delete();
+                            User::where('id', $userId)->delete();
+                        }
+                    }
+                    DB::commit();
+                    return redirect()->route('students.index')
+                        ->with('success', "{$count} students have been deleted successfully.");
+                } catch (\Exception $e) {
+                    DB::rollBack();
+                    return redirect()->route('students.index')
+                        ->with('error', "An error occurred while deleting students: {$e->getMessage()}");
+                }
+
+            case 'export':
+                // Generate Excel export of selected students
+                return Excel::download(new StudentsExport($studentIds), 'selected_students.xlsx');
+
+            default:
+                return redirect()->route('students.index')
+                    ->with('error', 'Invalid bulk action specified.');
+        }
     }
 
     /**

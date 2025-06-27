@@ -46,7 +46,8 @@ Route::middleware(['auth'])->group(function () {
      
     // Students Management
     Route::resource('students', StudentController::class);
-     Route::get('students-import', [StudentController::class, 'importForm'])->name('students.import.form');
+    Route::post('students/bulk-actions', [StudentController::class, 'bulkActions'])->name('students.bulk-actions');
+    Route::get('students-import', [StudentController::class, 'importForm'])->name('students.import.form');
     Route::post('students-import', [StudentController::class, 'processImport'])->name('students.import.process');
     Route::get('students-import-template', [StudentController::class, 'downloadImportTemplate'])->name('students.import.template');
      
@@ -167,7 +168,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('lesson-attendances/weekly', [\App\Http\Controllers\LessonAttendanceController::class, 'weekly'])->name('lesson-attendances.weekly');
     Route::get('lesson-attendances/monthly', [\App\Http\Controllers\LessonAttendanceController::class, 'monthly'])->name('lesson-attendances.monthly');
     Route::get('lesson-attendances/report', [\App\Http\Controllers\LessonAttendanceController::class, 'report'])->name('lesson-attendances.report');
+    Route::get('lesson-attendances/export', [\App\Http\Controllers\LessonAttendanceController::class, 'export'])->name('lesson-attendances.export');
     Route::get('lesson-attendances/{lessonSchedule}/take', [\App\Http\Controllers\LessonAttendanceController::class, 'takeAttendance'])->name('lesson-attendances.take');
     Route::post('lesson-attendances/{lessonSchedule}/store', [\App\Http\Controllers\LessonAttendanceController::class, 'storeAttendance'])->name('lesson-attendances.store');
+    Route::post('lesson-attendances/{lessonSchedule}/update-status', [\App\Http\Controllers\LessonAttendanceController::class, 'updateStatus'])->name('lesson-attendances.update-status');
     Route::get('lesson-attendances/send-birthday-wishes', [\App\Http\Controllers\LessonAttendanceController::class, 'sendBirthdayWishes'])->name('lesson-attendances.send-birthday-wishes');
 });

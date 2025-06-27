@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Teacher;
 use App\Models\User;
-use App\Models\Subject;
 use App\Models\SchoolClass;
 use App\Models\Department;
 use Illuminate\Http\Request;
@@ -23,7 +22,7 @@ class TeacherController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Teacher::with(['user', 'department', 'subjects', 'classes']);
+        $query = Teacher::with(['user', 'department']);
         
         // Filter by search term
         if ($request->filled('search')) {
@@ -48,21 +47,9 @@ class TeacherController extends Controller
             $query->where('status', $request->input('status'));
         }
         
-        // Filter by subject
-        if ($request->filled('subject')) {
-            $subjectId = $request->input('subject');
-            $query->whereHas('subjects', function($q) use ($subjectId) {
-                $q->where('subjects.id', $subjectId);
-            });
-        }
+        // Subject filtering removed
         
-        // Filter by class
-        if ($request->filled('class')) {
-            $classId = $request->input('class');
-            $query->whereHas('classes', function($q) use ($classId) {
-                $q->where('classes.id', $classId);
-            });
-        }
+        // Class filtering removed
         
         $teachers = $query->orderBy('created_at', 'desc')->paginate(15);
         $teachers->appends($request->except('page')); // Maintain filters when paginating
@@ -77,11 +64,9 @@ class TeacherController extends Controller
      */
     public function create()
     {
-        $subjects = Subject::where('status', 'active')->get();
-        $classes = SchoolClass::where('status', 'active')->get();
         $departments = Department::all();
         
-        return view('teachers.create', compact('subjects', 'classes', 'departments'));
+        return view('teachers.create', compact('departments'));
     }
 
     /**
@@ -102,10 +87,7 @@ class TeacherController extends Controller
             'phone' => 'nullable|string|max:20',
             // 'bio' field validation removed as it doesn't exist in the database
             'profile_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'subjects' => 'nullable|array',
-            'subjects.*' => 'exists:subjects,id',
-            'classes' => 'nullable|array',
-            'classes.*' => 'exists:classes,id',
+            // Classes validation removed
         ]);
 
         DB::beginTransaction();
@@ -139,22 +121,9 @@ class TeacherController extends Controller
                 // 'profile_image' field removed as it doesn't exist in the database
             ]);
 
-            // Assign subjects to teacher
-            if ($request->has('subjects')) {
-                $teacher->subjects()->attach($request->subjects);
-            }
+            // Subjects relationship handling removed
 
-            // Assign classes to teacher
-            if ($request->has('classes')) {
-                $classData = [];
-                foreach ($request->classes as $classId) {
-                    $classData[$classId] = [
-                        'is_class_teacher' => in_array($classId, $request->class_teacher ?? []),
-                        'academic_year' => date('Y') . '/' . (date('Y') + 1),
-                    ];
-                }
-                $teacher->classes()->attach($classData);
-            }
+            // Classes relationship handling removed
 
             DB::commit();
 
@@ -176,7 +145,7 @@ class TeacherController extends Controller
      */
     public function show(Teacher $teacher)
     {
-        $teacher->load(['user', 'subjects', 'classes']);
+        $teacher->load(['user']);
         
         return view('teachers.show', compact('teacher'));
     }
@@ -189,22 +158,11 @@ class TeacherController extends Controller
      */
     public function edit(Teacher $teacher)
     {
-        $subjects = Subject::where('status', 'active')->get();
-        $classes = SchoolClass::where('status', 'active')->get();
         $departments = Department::all();
-        
-        $teacherSubjects = $teacher->subjects->pluck('id')->toArray();
-        $teacherClasses = $teacher->classes->pluck('id')->toArray();
-        $classTeacherOf = $teacher->classes()->wherePivot('is_class_teacher', true)->pluck('class_id')->toArray();
         
         return view('teachers.edit', compact(
             'teacher', 
-            'subjects', 
-            'classes', 
-            'departments', 
-            'teacherSubjects', 
-            'teacherClasses', 
-            'classTeacherOf'
+            'departments'
         ));
     }
 
@@ -227,10 +185,7 @@ class TeacherController extends Controller
             // 'bio' field validation removed as it doesn't exist in the database
             'profile_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'password' => 'nullable|string|min:8|confirmed',
-            'subjects' => 'nullable|array',
-            'subjects.*' => 'exists:subjects,id',
-            'classes' => 'nullable|array',
-            'classes.*' => 'exists:classes,id',
+            // Classes validation removed
         ]);
 
         DB::beginTransaction();
@@ -267,26 +222,9 @@ class TeacherController extends Controller
             // Update teacher profile
             $teacher->update($updateData);
 
-            // Update subjects
-            if ($request->has('subjects')) {
-                $teacher->subjects()->sync($request->subjects);
-            } else {
-                $teacher->subjects()->detach();
-            }
+            // Subjects relationship handling removed
 
-            // Update classes
-            if ($request->has('classes')) {
-                $classData = [];
-                foreach ($request->classes as $classId) {
-                    $classData[$classId] = [
-                        'is_class_teacher' => in_array($classId, $request->class_teacher ?? []),
-                        'academic_year' => date('Y') . '/' . (date('Y') + 1),
-                    ];
-                }
-                $teacher->classes()->sync($classData);
-            } else {
-                $teacher->classes()->detach();
-            }
+            // Classes relationship handling removed
 
             DB::commit();
 
@@ -343,48 +281,8 @@ class TeacherController extends Controller
     }
 
     /**
-     * Filter teachers by subject.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\View\View
+     * Filter by class method removed
      */
-    public function filterBySubject(Request $request)
-    {
-        $subjectId = $request->input('subject_id');
-        
-        $teachers = Teacher::with('user')
-            ->whereHas('subjects', function($q) use ($subjectId) {
-                $q->where('subjects.id', $subjectId);
-            })
-            ->paginate(15);
-            
-        $subjects = Subject::where('status', 'active')->get();
-        $selectedSubject = Subject::find($subjectId);
-            
-        return view('teachers.index', compact('teachers', 'subjects', 'selectedSubject'));
-    }
-
-    /**
-     * Filter teachers by class.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\View\View
-     */
-    public function filterByClass(Request $request)
-    {
-        $classId = $request->input('class_id');
-        
-        $teachers = Teacher::with('user')
-            ->whereHas('classes', function($q) use ($classId) {
-                $q->where('classes.id', $classId);
-            })
-            ->paginate(15);
-            
-        $classes = SchoolClass::where('status', 'active')->get();
-        $selectedClass = SchoolClass::find($classId);
-            
-        return view('teachers.index', compact('teachers', 'classes', 'selectedClass'));
-    }
     
     /**
      * Perform bulk actions on multiple teachers.

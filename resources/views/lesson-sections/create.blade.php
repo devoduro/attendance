@@ -3,85 +3,137 @@
 @section('title', 'Add New Lesson Section')
 
 @section('content')
-<div class="container-fluid">
-    <div class="d-sm-flex align-items-center justify-content-between mb-4">
-        <h1 class="h3 mb-0 text-gray-800">Add New Lesson Section</h1>
-        <a href="{{ route('lesson-sections.index') }}" class="d-none d-sm-inline-block btn btn-sm btn-secondary shadow-sm">
-            <i class="fas fa-arrow-left fa-sm text-white-50"></i> Back to Lesson Sections
+<div class="w-full">
+    <!-- Page Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
+        <h1 class="text-2xl font-bold text-gray-800 flex items-center mb-4 sm:mb-0">
+            <i class="fas fa-plus-circle mr-3 text-blue-600"></i> Add New Lesson Section
+        </h1>
+        <a href="{{ route('lesson-sections.index') }}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-all duration-200">
+            <i class="fas fa-arrow-left mr-2"></i> Back to Lesson Sections
         </a>
     </div>
 
-    <div class="card shadow mb-4">
-        <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">Lesson Section Details</h6>
+    <!-- Form Card -->
+    <div class="bg-white rounded-lg shadow overflow-hidden border-l-4 border-blue-500 mb-6">
+        <div class="bg-gradient-to-r from-blue-500 to-blue-600 px-4 py-3 flex justify-between items-center text-white">
+            <h2 class="text-lg font-bold flex items-center"><i class="fas fa-edit mr-2"></i>Lesson Section Details</h2>
         </div>
-        <div class="card-body">
+        <div class="p-6">
             <form action="{{ route('lesson-sections.store') }}" method="POST">
                 @csrf
                 
-                <div class="form-group row">
-                    <label for="name" class="col-sm-2 col-form-label">Name <span class="text-danger">*</span></label>
-                    <div class="col-sm-10">
-                        <input type="text" class="form-control @error('name') is-invalid @enderror" id="name" name="name" value="{{ old('name') }}" required>
-                        @error('name')
-                            <span class="invalid-feedback" role="alert">
-                                <strong>{{ $message }}</strong>
-                            </span>
-                        @enderror
-                        <small class="form-text text-muted">Example: Morning Session, Afternoon Session, Evening Session</small>
-                    </div>
-                </div>
-                
-                <div class="form-group row">
-                    <label for="start_time" class="col-sm-2 col-form-label">Start Time <span class="text-danger">*</span></label>
-                    <div class="col-sm-10">
-                        <input type="time" class="form-control @error('start_time') is-invalid @enderror" id="start_time" name="start_time" value="{{ old('start_time') }}" required>
-                        @error('start_time')
-                            <span class="invalid-feedback" role="alert">
-                                <strong>{{ $message }}</strong>
-                            </span>
-                        @enderror
-                    </div>
-                </div>
-                
-                <div class="form-group row">
-                    <label for="end_time" class="col-sm-2 col-form-label">End Time <span class="text-danger">*</span></label>
-                    <div class="col-sm-10">
-                        <input type="time" class="form-control @error('end_time') is-invalid @enderror" id="end_time" name="end_time" value="{{ old('end_time') }}" required>
-                        @error('end_time')
-                            <span class="invalid-feedback" role="alert">
-                                <strong>{{ $message }}</strong>
-                            </span>
-                        @enderror
-                    </div>
-                </div>
-                
-                <div class="form-group row">
-                    <label for="description" class="col-sm-2 col-form-label">Description</label>
-                    <div class="col-sm-10">
-                        <textarea class="form-control @error('description') is-invalid @enderror" id="description" name="description" rows="3">{{ old('description') }}</textarea>
-                        @error('description')
-                            <span class="invalid-feedback" role="alert">
-                                <strong>{{ $message }}</strong>
-                            </span>
-                        @enderror
-                    </div>
-                </div>
-                
-                <div class="form-group row">
-                    <label for="is_active" class="col-sm-2 col-form-label">Status</label>
-                    <div class="col-sm-10">
-                        <div class="custom-control custom-switch">
-                            <input type="checkbox" class="custom-control-input" id="is_active" name="is_active" value="1" {{ old('is_active', '1') == '1' ? 'checked' : '' }}>
-                            <label class="custom-control-label" for="is_active">Active</label>
+                <!-- Name Field -->
+                <div class="mb-6">
+                    <div class="flex flex-col md:flex-row md:items-center">
+                        <label for="name" class="block text-sm font-medium text-gray-700 md:w-1/4 mb-2 md:mb-0">
+                            Name <span class="text-red-600">*</span>
+                        </label>
+                        <div class="md:w-3/4">
+                            <input type="text" id="name" name="name" value="{{ old('name') }}" 
+                                class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md @error('name') border-red-300 text-red-900 placeholder-red-300 focus:outline-none focus:ring-red-500 focus:border-red-500 @enderror" 
+                                placeholder="Enter section name" required>
+                            
+                            @error('name')
+                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                            
+                            <p class="mt-2 text-sm text-gray-500">Example: Morning Session, Afternoon Session, Evening Session</p>
                         </div>
                     </div>
                 </div>
                 
-                <div class="form-group row">
-                    <div class="col-sm-10 offset-sm-2">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-save"></i> Save Lesson Section
+                <!-- Start Time Field -->
+                <div class="mb-6">
+                    <div class="flex flex-col md:flex-row md:items-center">
+                        <label for="start_time" class="block text-sm font-medium text-gray-700 md:w-1/4 mb-2 md:mb-0">
+                            Start Time <span class="text-red-600">*</span>
+                        </label>
+                        <div class="md:w-3/4">
+                            <div class="relative rounded-md shadow-sm">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <i class="fas fa-clock text-gray-400"></i>
+                                </div>
+                                <input type="time" id="start_time" name="start_time" value="{{ old('start_time') }}" 
+                                    class="pl-10 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md @error('start_time') border-red-300 text-red-900 placeholder-red-300 focus:outline-none focus:ring-red-500 focus:border-red-500 @enderror" 
+                                    required>
+                            </div>
+                            
+                            @error('start_time')
+                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- End Time Field -->
+                <div class="mb-6">
+                    <div class="flex flex-col md:flex-row md:items-center">
+                        <label for="end_time" class="block text-sm font-medium text-gray-700 md:w-1/4 mb-2 md:mb-0">
+                            End Time <span class="text-red-600">*</span>
+                        </label>
+                        <div class="md:w-3/4">
+                            <div class="relative rounded-md shadow-sm">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <i class="fas fa-clock text-gray-400"></i>
+                                </div>
+                                <input type="time" id="end_time" name="end_time" value="{{ old('end_time') }}" 
+                                    class="pl-10 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md @error('end_time') border-red-300 text-red-900 placeholder-red-300 focus:outline-none focus:ring-red-500 focus:border-red-500 @enderror" 
+                                    required>
+                            </div>
+                            
+                            @error('end_time')
+                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Description Field -->
+                <div class="mb-6">
+                    <div class="flex flex-col md:flex-row md:items-start">
+                        <label for="description" class="block text-sm font-medium text-gray-700 md:w-1/4 mb-2 md:mb-0 md:pt-2">
+                            Description
+                        </label>
+                        <div class="md:w-3/4">
+                            <textarea id="description" name="description" rows="3" 
+                                class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md @error('description') border-red-300 text-red-900 placeholder-red-300 focus:outline-none focus:ring-red-500 focus:border-red-500 @enderror" 
+                                placeholder="Enter optional description">{{ old('description') }}</textarea>
+                            
+                            @error('description')
+                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Status Field -->
+                <div class="mb-6">
+                    <div class="flex flex-col md:flex-row md:items-center">
+                        <label for="is_active" class="block text-sm font-medium text-gray-700 md:w-1/4 mb-2 md:mb-0">
+                            Status
+                        </label>
+                        <div class="md:w-3/4">
+                            <div class="flex items-center">
+                                <div class="form-check form-switch">
+                                    <input type="checkbox" id="is_active" name="is_active" value="1" 
+                                        class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" 
+                                        {{ old('is_active', '1') == '1' ? 'checked' : '' }}>
+                                    <label for="is_active" class="ml-2 block text-sm text-gray-900">
+                                        Active
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Submit Button -->
+                <div class="flex flex-col md:flex-row md:items-center">
+                    <div class="md:w-1/4"></div>
+                    <div class="md:w-3/4">
+                        <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200">
+                            <i class="fas fa-save mr-2"></i> Save Lesson Section
                         </button>
                     </div>
                 </div>
@@ -101,7 +153,18 @@
             
             if (startTime >= endTime) {
                 e.preventDefault();
-                alert('End time must be after start time');
+                // Use SweetAlert if available, otherwise fallback to regular alert
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        title: 'Invalid Time Range',
+                        text: 'End time must be after start time',
+                        icon: 'error',
+                        confirmButtonText: 'OK',
+                        confirmButtonColor: '#3085d6'
+                    });
+                } else {
+                    alert('End time must be after start time');
+                }
                 return false;
             }
         });

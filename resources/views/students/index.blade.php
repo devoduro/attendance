@@ -46,33 +46,20 @@
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <!-- Search Form -->
             <div>
-                <form action="{{ route('students.index') }}" method="GET" class="flex">
-                    <input type="text" name="query" placeholder="Search by name, ID, phone or email" 
-                        class="form-input rounded-r-none flex-1" value="{{ isset($query) ? $query : '' }}">
-                    <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-r-md hover:bg-blue-600">
-                        <i class="fas fa-search"></i>
-                    </button>
+                <div class="relative">
+                    <input type="text" id="quick-search" name="query" placeholder="Search by name, ID, phone or email" 
+                        class="form-input rounded-md flex-1 w-full" value="{{ isset($query) ? $query : '' }}">
+                    <div class="absolute inset-y-0 right-0 flex items-center pr-3">
+                        <i class="fas fa-search text-gray-400"></i>
+                    </div>
+                    <div id="search-results" class="absolute z-10 w-full mt-1 bg-white rounded-md shadow-lg hidden"></div>
+                </div>
+                <form id="search-form" action="{{ route('students.index') }}" method="GET" class="hidden">
+                    <input type="hidden" id="search-query" name="query" value="{{ isset($query) ? $query : '' }}">
                 </form>
             </div>
 
-            <!-- Filter by Program -->
-            <div>
-                <form action="{{ route('students.index') }}" method="GET">
-                    <div class="flex">
-                        <select name="program_id" class="form-select rounded-r-none flex-1">
-                            <option value="">Filter by Program</option>
-                            @foreach($programs as $program)
-                                <option value="{{ $program->id }}" {{ isset($selectedProgram) && $selectedProgram->id == $program->id ? 'selected' : '' }}>
-                                    {{ $program->name }}
-                                </option>
-                            @endforeach
-                        </select>
-                        <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-r-md hover:bg-blue-600">
-                            <i class="fas fa-filter"></i>
-                        </button>
-                    </div>
-                </form>
-            </div>
+            <!-- Program filter removed as it's no longer supported by the controller -->
 
             <!-- Filter by Class -->
             <div>
@@ -131,6 +118,30 @@
         @endif
     </div>
 
+    <!-- Bulk Actions -->
+    <div class="bg-white rounded-lg shadow-sm p-4 mb-4">
+        <form id="bulk-actions-form" action="{{ route('students.bulk-actions') }}" method="POST">
+            @csrf
+            <div class="flex flex-wrap items-center gap-4">
+                <div class="flex-grow md:flex-grow-0">
+                    <select name="bulk_action" class="form-select w-full" required>
+                        <option value="">-- Select Bulk Action --</option>
+                        <option value="activate">Activate Selected</option>
+                        <option value="deactivate">Deactivate Selected</option>
+                        <option value="export">Export Selected</option>
+                        <option value="delete">Delete Selected</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn-secondary" onclick="return confirmBulkAction()">
+                    Apply
+                </button>
+                <div class="ml-auto">
+                    <span class="text-sm text-gray-600" id="selected-count">0 students selected</span>
+                </div>
+            </div>
+        </form>
+    </div>
+
     <!-- Students Table -->
     <div class="bg-white rounded-lg shadow-sm overflow-hidden">
         @if($students->count() > 0)
@@ -138,6 +149,12 @@
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
                         <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <div class="flex items-center">
+                                    <input type="checkbox" id="select-all" class="form-checkbox h-4 w-4 text-blue-600 rounded">
+                                    <label for="select-all" class="sr-only">Select All</label>
+                                </div>
+                            </th>
                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Student ID</th>
                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Class</th>
@@ -149,7 +166,12 @@
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
                         @foreach($students as $student)
-                            <tr>
+                            <tr class="student-row hover:bg-gray-50 cursor-pointer" data-student-id="{{ $student->id }}">
+                                <td class="px-6 py-4 whitespace-nowrap" onclick="event.stopPropagation()">
+                                    <div class="flex items-center">
+                                        <input type="checkbox" name="selected_students[]" value="{{ $student->id }}" class="student-checkbox form-checkbox h-4 w-4 text-blue-600 rounded">
+                                    </div>
+                                </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="text-sm font-medium text-gray-900">{{ $student->enrollment_code }}</div>
                                 </td>
@@ -168,7 +190,8 @@
                                     <div class="text-sm text-gray-900">{{ $student->class->name ?? 'Not Assigned' }}</div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm text-gray-900">{{ $student->program->name ?? 'Not Assigned' }}</div>
+                                    <div class="text-sm text-gray-900">N/A</div>
+                                    <div class="text-xs text-gray-500">Program info removed</div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="text-sm text-gray-900">{{ $student->mobile_phone ?? 'N/A' }}</div>
@@ -192,9 +215,7 @@
                                     <a href="{{ route('students.edit', $student) }}" class="text-indigo-600 hover:text-indigo-900 mr-3">
                                         <i class="fas fa-edit"></i>
                                     </a>
-                                    <a href="{{ route('students.results', $student) }}" class="text-green-600 hover:text-green-900 mr-3">
-                                        <i class="fas fa-chart-bar"></i>
-                                    </a>
+                                    <!-- Results link removed as route 'students.results' is not defined -->
                                     <form action="{{ route('students.destroy', $student) }}" method="POST" class="inline">
                                         @csrf
                                         @method('DELETE')
@@ -235,4 +256,371 @@
         @endif
     </div>
 </div>
+
+<!-- Student Quick View Modal -->
+<div id="student-modal" class="fixed inset-0 bg-gray-900 bg-opacity-50 z-50 flex items-center justify-center hidden">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+        <div class="border-b px-6 py-4 flex items-center justify-between">
+            <h3 class="text-lg font-medium text-gray-900" id="modal-title">Student Details</h3>
+            <button type="button" id="close-modal" class="text-gray-400 hover:text-gray-500">
+                <span class="sr-only">Close</span>
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="p-6" id="modal-content">
+            <div class="flex flex-col md:flex-row gap-6">
+                <!-- Student Profile Section -->
+                <div class="md:w-1/3">
+                    <div class="flex flex-col items-center text-center">
+                        <div class="w-32 h-32 mb-4">
+                            <img id="student-photo" class="w-32 h-32 rounded-full object-cover" src="" alt="Student Photo">
+                        </div>
+                        <h4 id="student-name" class="text-xl font-bold"></h4>
+                        <p id="student-id" class="text-gray-500 mb-2"></p>
+                        <div id="student-status" class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"></div>
+                    </div>
+                    <div class="mt-6">
+                        <a id="view-profile-link" href="#" class="btn-primary w-full text-center mb-2">
+                            <i class="fas fa-user mr-1"></i> View Full Profile
+                        </a>
+                        <a id="edit-profile-link" href="#" class="btn-secondary w-full text-center">
+                            <i class="fas fa-edit mr-1"></i> Edit Profile
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Student Details Section -->
+                <div class="md:w-2/3">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <h5 class="font-bold mb-2">Academic Information</h5>
+                            <div class="space-y-2">
+                                <div>
+                                    <span class="text-gray-500">Class:</span>
+                                    <span id="student-class" class="font-medium"></span>
+                                </div>
+                                <div>
+                                    <span class="text-gray-500">Admission Date:</span>
+                                    <span id="student-admission-date" class="font-medium"></span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h5 class="font-bold mb-2">Contact Information</h5>
+                            <div class="space-y-2">
+                                <div>
+                                    <span class="text-gray-500">Email:</span>
+                                    <span id="student-email" class="font-medium"></span>
+                                </div>
+                                <div>
+                                    <span class="text-gray-500">Phone:</span>
+                                    <span id="student-phone" class="font-medium"></span>
+                                </div>
+                                <div>
+                                    <span class="text-gray-500">Guardian:</span>
+                                    <span id="student-guardian" class="font-medium"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6">
+                        <h5 class="font-bold mb-2">Recent Attendance</h5>
+                        <div id="attendance-chart" class="h-24 flex items-center justify-center bg-gray-50 rounded">
+                            <span class="text-gray-400">Loading attendance data...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const selectAllCheckbox = document.getElementById('select-all');
+        const studentCheckboxes = document.querySelectorAll('.student-checkbox');
+        const selectedCountElement = document.getElementById('selected-count');
+        const bulkActionsForm = document.getElementById('bulk-actions-form');
+        const quickSearchInput = document.getElementById('quick-search');
+        const searchResultsContainer = document.getElementById('search-results');
+        const searchForm = document.getElementById('search-form');
+        const searchQueryInput = document.getElementById('search-query');
+        
+        // Handle "Select All" checkbox
+        selectAllCheckbox.addEventListener('change', function() {
+            const isChecked = this.checked;
+            
+            studentCheckboxes.forEach(checkbox => {
+                checkbox.checked = isChecked;
+            });
+            
+            updateSelectedCount();
+        });
+        
+        // Handle individual checkboxes
+        studentCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                updateSelectedCount();
+                
+                // Update "Select All" checkbox state
+                const allChecked = Array.from(studentCheckboxes).every(cb => cb.checked);
+                const someChecked = Array.from(studentCheckboxes).some(cb => cb.checked);
+                
+                selectAllCheckbox.checked = allChecked;
+                selectAllCheckbox.indeterminate = someChecked && !allChecked;
+            });
+        });
+        
+        // Update the selected count display
+        function updateSelectedCount() {
+            const selectedCount = Array.from(studentCheckboxes).filter(cb => cb.checked).length;
+            selectedCountElement.textContent = `${selectedCount} student${selectedCount !== 1 ? 's' : ''} selected`;
+        }
+        
+        // Quick Search functionality
+        let searchTimeout;
+        
+        quickSearchInput.addEventListener('input', function() {
+            const query = this.value.trim();
+            searchQueryInput.value = query;
+            
+            // Clear previous timeout
+            clearTimeout(searchTimeout);
+            
+            if (query.length < 2) {
+                searchResultsContainer.classList.add('hidden');
+                searchResultsContainer.innerHTML = '';
+                return;
+            }
+            
+            // Set a timeout to avoid making too many requests while typing
+            searchTimeout = setTimeout(() => {
+                // Make AJAX request to search for students
+                fetch(`/api/students/search?query=${encodeURIComponent(query)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.length > 0) {
+                            // Display search results
+                            searchResultsContainer.innerHTML = '';
+                            searchResultsContainer.classList.remove('hidden');
+                            
+                            data.forEach(student => {
+                                const resultItem = document.createElement('div');
+                                resultItem.className = 'p-2 hover:bg-gray-100 cursor-pointer flex items-center';
+                                resultItem.innerHTML = `
+                                    <div class="flex-shrink-0 h-8 w-8 mr-2">
+                                        <img class="h-8 w-8 rounded-full" src="${student.profile_photo_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(student.name)}&color=7F9CF5&background=EBF4FF`}" alt="${student.name}">
+                                    </div>
+                                    <div>
+                                        <div class="text-sm font-medium text-gray-900">${student.name}</div>
+                                        <div class="text-xs text-gray-500">${student.enrollment_code || ''}</div>
+                                    </div>
+                                `;
+                                
+                                resultItem.addEventListener('click', () => {
+                                    window.location.href = `/students/${student.id}`;
+                                });
+                                
+                                searchResultsContainer.appendChild(resultItem);
+                            });
+                            
+                            // Add "View all results" link
+                            const viewAllItem = document.createElement('div');
+                            viewAllItem.className = 'p-2 text-center text-blue-600 hover:bg-gray-100 cursor-pointer border-t';
+                            viewAllItem.textContent = 'View all results';
+                            viewAllItem.addEventListener('click', () => {
+                                searchForm.submit();
+                            });
+                            
+                            searchResultsContainer.appendChild(viewAllItem);
+                        } else {
+                            searchResultsContainer.innerHTML = '<div class="p-2 text-center text-gray-500">No results found</div>';
+                            searchResultsContainer.classList.remove('hidden');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error searching students:', error);
+                    });
+            }, 300);
+        });
+        
+        // Hide search results when clicking outside
+        document.addEventListener('click', function(event) {
+            if (!searchResultsContainer.contains(event.target) && event.target !== quickSearchInput) {
+                searchResultsContainer.classList.add('hidden');
+            }
+        });
+        
+        // Submit search form on Enter key
+        quickSearchInput.addEventListener('keydown', function(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                searchForm.submit();
+            }
+        });
+        
+        // Student Modal Functionality
+        const studentModal = document.getElementById('student-modal');
+        const closeModalBtn = document.getElementById('close-modal');
+        const studentRows = document.querySelectorAll('.student-row');
+        
+        // Close modal when clicking the close button
+        closeModalBtn.addEventListener('click', function() {
+            studentModal.classList.add('hidden');
+        });
+        
+        // Close modal when clicking outside the modal content
+        studentModal.addEventListener('click', function(event) {
+            if (event.target === studentModal) {
+                studentModal.classList.add('hidden');
+            }
+        });
+        
+        // Close modal when pressing Escape key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape' && !studentModal.classList.contains('hidden')) {
+                studentModal.classList.add('hidden');
+            }
+        });
+        
+        // Open modal when clicking on a student row
+        studentRows.forEach(row => {
+            row.addEventListener('click', function() {
+                const studentId = this.getAttribute('data-student-id');
+                openStudentModal(studentId);
+            });
+        });
+        
+        // Function to open student modal with data
+        function openStudentModal(studentId) {
+            // Show loading state
+            document.getElementById('modal-content').innerHTML = `
+                <div class="flex justify-center items-center h-64">
+                    <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+                </div>
+            `;
+            
+            // Show the modal
+            studentModal.classList.remove('hidden');
+            
+            // Fetch student data
+            fetch(`/api/students/${studentId}`)
+                .then(response => response.json())
+                .then(student => {
+                    // Update modal title
+                    document.getElementById('modal-title').textContent = `Student: ${student.user.name}`;
+                    
+                    // Update modal content
+                    document.getElementById('modal-content').innerHTML = `
+                        <div class="flex flex-col md:flex-row gap-6">
+                            <!-- Student Profile Section -->
+                            <div class="md:w-1/3">
+                                <div class="flex flex-col items-center text-center">
+                                    <div class="w-32 h-32 mb-4">
+                                        <img id="student-photo" class="w-32 h-32 rounded-full object-cover" 
+                                            src="${student.user.profile_photo_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(student.user.name)}&color=7F9CF5&background=EBF4FF`}" 
+                                            alt="${student.user.name}">
+                                    </div>
+                                    <h4 id="student-name" class="text-xl font-bold">${student.user.name}</h4>
+                                    <p id="student-id" class="text-gray-500 mb-2">${student.enrollment_code}</p>
+                                    <div id="student-status" class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${student.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                                        ${student.status === 'active' ? 'Active' : 'Inactive'}
+                                    </div>
+                                </div>
+                                <div class="mt-6">
+                                    <a href="/students/${student.id}" class="btn-primary w-full text-center mb-2">
+                                        <i class="fas fa-user mr-1"></i> View Full Profile
+                                    </a>
+                                    <a href="/students/${student.id}/edit" class="btn-secondary w-full text-center">
+                                        <i class="fas fa-edit mr-1"></i> Edit Profile
+                                    </a>
+                                </div>
+                            </div>
+                            
+                            <!-- Student Details Section -->
+                            <div class="md:w-2/3">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <h5 class="font-bold mb-2">Academic Information</h5>
+                                        <div class="space-y-2">
+                                            <div>
+                                                <span class="text-gray-500">Class:</span>
+                                                <span class="font-medium">${student.class ? student.class.name : 'Not Assigned'}</span>
+                                            </div>
+                                            <div>
+                                                <span class="text-gray-500">House:</span>
+                                                <span class="font-medium">${student.house ? student.house.name : 'Not Assigned'}</span>
+                                            </div>
+                                            <div>
+                                                <span class="text-gray-500">Admission Date:</span>
+                                                <span class="font-medium">${student.admission_date || 'Not Set'}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <h5 class="font-bold mb-2">Contact Information</h5>
+                                        <div class="space-y-2">
+                                            <div>
+                                                <span class="text-gray-500">Email:</span>
+                                                <span class="font-medium">${student.email || 'N/A'}</span>
+                                            </div>
+                                            <div>
+                                                <span class="text-gray-500">Phone:</span>
+                                                <span class="font-medium">${student.mobile_phone || 'N/A'}</span>
+                                            </div>
+                                            <div>
+                                                <span class="text-gray-500">Guardian:</span>
+                                                <span class="font-medium">${student.guardians_name || 'N/A'}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mt-6">
+                                    <h5 class="font-bold mb-2">Recent Attendance</h5>
+                                    <div class="h-24 flex items-center justify-center bg-gray-50 rounded">
+                                        <span class="text-gray-400">Attendance data will be displayed here</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                })
+                .catch(error => {
+                    console.error('Error fetching student details:', error);
+                    document.getElementById('modal-content').innerHTML = `
+                        <div class="text-center py-8 text-red-500">
+                            <i class="fas fa-exclamation-circle text-4xl mb-4"></i>
+                            <p>Error loading student details. Please try again.</p>
+                        </div>
+                    `;
+                });
+        }
+        
+        // Confirm bulk actions
+        window.confirmBulkAction = function() {
+            const selectedCount = Array.from(studentCheckboxes).filter(cb => cb.checked).length;
+            const action = bulkActionsForm.querySelector('select[name="bulk_action"]').value;
+            
+            if (selectedCount === 0) {
+                alert('Please select at least one student.');
+                return false;
+            }
+            
+            if (action === 'delete') {
+                return confirm(`Are you sure you want to delete ${selectedCount} selected student${selectedCount !== 1 ? 's' : ''}? This action cannot be undone.`);
+            } else if (action === 'deactivate') {
+                return confirm(`Are you sure you want to deactivate ${selectedCount} selected student${selectedCount !== 1 ? 's' : ''}?`);
+            }
+            
+            return true;
+        };
+    });
+</script>
+@endpush
+
 @endsection

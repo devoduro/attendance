@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Student;
 use App\Models\Teacher;
-use App\Models\SchoolClass;
+use App\Models\LessonSchedule;
 use App\Models\Subject;
 use App\Models\AcademicRecord;
 use App\Models\User;
@@ -36,7 +36,7 @@ class DashboardController extends Controller
         if ($user->hasRole('admin')) {
             // Admin sees all statistics
             $data['totalStudents'] = Student::where('status', 'active')->count();
-            $data['totalClasses'] = SchoolClass::where('status', 'active')->count();
+            $data['totalLessons'] = LessonSchedule::where('is_active', true)->count();
             $data['activeExams'] = Exam::where('status', 'published')
                 ->where(function($query) {
                     $now = Carbon::now();
@@ -54,8 +54,9 @@ class DashboardController extends Controller
                 $data['totalStudents'] = Student::whereIn('class_id', $teacherClassIds)
                     ->where('status', 'active')->count();
                     
-                // Count only classes assigned to this teacher
-                $data['totalClasses'] = count($teacherClassIds);
+                // Count only lessons assigned to this teacher
+                $data['totalLessons'] = LessonSchedule::where('teacher_id', $teacher->id)
+                    ->where('is_active', true)->count();
                 
                 // Count only exams for classes taught by this teacher
                 $data['activeExams'] = Exam::where('status', 'published')
@@ -73,19 +74,15 @@ class DashboardController extends Controller
             } else {
                 // Default values if teacher profile not found
                 $data['totalStudents'] = 0;
-                $data['totalClasses'] = 0;
+                $data['totalLessons'] = 0;
                 $data['activeExams'] = 0;
             }
         } else {
             // Students see general statistics
             $data['totalStudents'] = Student::where('status', 'active')->count();
-            $data['totalClasses'] = SchoolClass::where('status', 'active')->count();
-            $data['activeExams'] = Exam::where('status', 'published')
-                ->where(function($query) {
-                    $now = Carbon::now();
-                    $query->whereNull('end_time')
-                        ->orWhere('end_time', '>=', $now);
-                })->count();
+            $data['totalLessons'] = LessonSchedule::where('is_active', true)->count();
+            // Since we don't have an exams table, just set activeExams to 0
+            $data['activeExams'] = 0;
         }
         
         // Role-specific data

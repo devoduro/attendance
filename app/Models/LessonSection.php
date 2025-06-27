@@ -41,4 +41,26 @@ class LessonSection extends Model
     {
         return $this->hasMany(LessonSchedule::class);
     }
+    
+    /**
+     * Calculate the duration in minutes between start_time and end_time.
+     *
+     * @return int
+     */
+    public function getDurationInMinutes(): int
+    {
+        if (!$this->start_time || !$this->end_time) {
+            return 0;
+        }
+        
+        $start = $this->start_time;
+        $end = $this->end_time;
+        
+        // If end time is before start time, assume it's the next day
+        if ($end < $start) {
+            $end = $end->addDay();
+        }
+        
+        return $end->diffInMinutes($start);
+    }
 }

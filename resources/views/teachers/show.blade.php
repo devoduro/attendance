@@ -79,41 +79,9 @@
                 <hr class="my-6">
                 @endif
                 
-                <!-- Assigned Subjects -->
-                <div class="mb-6">
-                    <h3 class="text-lg font-medium text-gray-900 mb-3">Assigned Subjects</h3>
-                    @if($teacher->subjects->count() > 0)
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            @foreach($teacher->subjects as $subject)
-                                <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                                    <h4 class="font-medium text-gray-900">{{ $subject->name }}</h4>
-                                    <p class="text-sm text-gray-500">Code: {{ $subject->code }}</p>
-                                </div>
-                            @endforeach
-                        </div>
-                    @else
-                        <p class="text-gray-500">No subjects assigned yet.</p>
-                    @endif
-                </div>
+                <!-- Subjects section removed -->
                 
-                <!-- Assigned Classes -->
-                <div class="mb-6">
-                    <h3 class="text-lg font-medium text-gray-900 mb-3">Assigned Classes</h3>
-                    @if($teacher->classes->count() > 0)
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            @foreach($teacher->classes as $class)
-                                <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                                    <h4 class="font-medium text-gray-900">{{ $class->name }}</h4>
-                                    @if($class->section)
-                                        <p class="text-sm text-gray-500">Section: {{ $class->section }}</p>
-                                    @endif
-                                </div>
-                            @endforeach
-                        </div>
-                    @else
-                        <p class="text-gray-500">No classes assigned yet.</p>
-                    @endif
-                </div>
+                <!-- Classes section removed -->
                 
                 <!-- Recent Activity -->
                 <div>

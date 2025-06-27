@@ -100,33 +100,9 @@
                     @enderror
                 </div>
 
-                <!-- Program -->
-                <div>
-                    <label for="program_id" class="block text-sm font-medium text-gray-700">Program <span class="text-red-500">*</span></label>
-                    <select name="program_id" id="program_id" class="mt-1 form-select block w-full rounded-md" required>
-                        <option value="">Select Program</option>
-                        @foreach($programs as $program)
-                            <option value="{{ $program->id }}" {{ old('program_id') == $program->id ? 'selected' : '' }}>{{ $program->name }}</option>
-                        @endforeach
-                    </select>
-                    @error('program_id')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                    @enderror
-                </div>
 
-                <!-- House -->
-                <div>
-                    <label for="house_id" class="block text-sm font-medium text-gray-700">House</label>
-                    <select name="house_id" id="house_id" class="mt-1 form-select block w-full rounded-md">
-                        <option value="">Select House</option>
-                        @foreach($houses as $house)
-                            <option value="{{ $house->id }}" {{ old('house_id') == $house->id ? 'selected' : '' }}>{{ $house->name }}</option>
-                        @endforeach
-                    </select>
-                    @error('house_id')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                    @enderror
-                </div>
+
+
 
                 <!-- Status -->
                 <div>

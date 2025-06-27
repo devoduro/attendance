@@ -18,6 +18,7 @@ return new class extends Migration
             $table->date('date');
             $table->enum('status', ['present', 'absent', 'late', 'excused']);
             $table->text('remarks')->nullable();
+            $table->dateTime('end_time')->nullable();
             $table->timestamps();
 
             $table->unique(['student_id', 'date']);

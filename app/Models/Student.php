@@ -60,13 +60,7 @@ class Student extends Model
         return $this->belongsTo(SchoolClass::class, 'class_id');
     }
 
-    /**
-     * Get the program that the student is enrolled in.
-     */
-    public function program()
-    {
-        return $this->belongsTo(Program::class);
-    }
+    // Program relationship removed
 
     /**
      * Get the academic records for the student.
@@ -124,6 +118,20 @@ class Student extends Model
     public function getFullNameAttribute()
     {
         return $this->user->name;
+    }
+    
+    /**
+     * Calculate the age of the student based on date of birth.
+     *
+     * @return int|null
+     */
+    public function getAge()
+    {
+        if (!$this->date_of_birth) {
+            return null;
+        }
+        
+        return $this->date_of_birth->age;
     }
     
     /**
