@@ -34,6 +34,18 @@
                     @endforeach
                 </select>
             </div>
+            
+            <div>
+                <label for="centre" class="block text-sm font-medium text-gray-700 mb-1">Centre</label>
+                <select name="centre" id="centre" class="w-full border-gray-300 rounded-md shadow-sm focus:border-primary-300 focus:ring focus:ring-primary-200 focus:ring-opacity-50">
+                    <option value="">All Centres</option>
+                    @foreach(\App\Models\Centre::where('is_active', true)->get() as $centre)
+                        <option value="{{ $centre->id }}" {{ request('centre') == $centre->id ? 'selected' : '' }}>
+                            {{ $centre->name }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
 
             <div>
                 <label for="status" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
@@ -129,6 +141,9 @@
                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Department
                     </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Centre
+                    </th>
                     <!-- Subjects column removed -->
                     <!-- Classes column removed -->
                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -156,6 +171,9 @@
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {{ $teacher->department->name ?? 'N/A' }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {{ $teacher->centre->name ?? 'N/A' }}
                     </td>
                     <!-- Subjects count cell removed -->
                     <!-- Classes count cell removed -->

@@ -21,6 +21,7 @@ class LessonSchedule extends Model
         'centre_id',
         'lesson_section_id',
         'teacher_id',
+        'subject_id',
         'day_of_week',
         'start_date',
         'end_date',
@@ -61,6 +62,14 @@ class LessonSchedule extends Model
     public function teacher(): BelongsTo
     {
         return $this->belongsTo(Teacher::class);
+    }
+    
+    /**
+     * Get the subject that owns the lesson schedule.
+     */
+    public function subject(): BelongsTo
+    {
+        return $this->belongsTo(Subject::class);
     }
 
     /**

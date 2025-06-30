@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Centre;
 use App\Models\LessonSchedule;
 use App\Models\LessonSection;
+use App\Models\Subject;
 use App\Models\Teacher;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -16,7 +17,7 @@ class LessonScheduleController extends Controller
      */
     public function index()
     {
-        $lessonSchedules = LessonSchedule::with(['centre', 'lessonSection', 'teacher'])
+        $lessonSchedules = LessonSchedule::with(['centre', 'lessonSection', 'teacher', 'subject'])
             ->orderBy('day_of_week')
             ->orderBy('start_date')
             ->get();
@@ -37,6 +38,7 @@ class LessonScheduleController extends Controller
                 'name' => $teacher->user->name
             ];
         })->pluck('name', 'id');
+        $subjects = Subject::where('is_active', true)->orderBy('name')->pluck('name', 'id');
         $daysOfWeek = [
             'Monday' => 'Monday',
             'Tuesday' => 'Tuesday',
@@ -47,7 +49,7 @@ class LessonScheduleController extends Controller
             'Sunday' => 'Sunday',
         ];
         
-        return view('lesson-schedules.create', compact('centres', 'lessonSections', 'teachers', 'daysOfWeek'));
+        return view('lesson-schedules.create', compact('centres', 'lessonSections', 'teachers', 'subjects', 'daysOfWeek'));
     }
 
     /**
@@ -59,6 +61,7 @@ class LessonScheduleController extends Controller
             'centre_id' => 'required|exists:centres,id',
             'lesson_section_id' => 'required|exists:lesson_sections,id',
             'teacher_id' => 'required|exists:teachers,id',
+            'subject_id' => 'required|exists:subjects,id',
             'day_of_week' => 'required|in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday',
             'start_date' => 'required|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
@@ -82,7 +85,7 @@ class LessonScheduleController extends Controller
      */
     public function show(LessonSchedule $lessonSchedule)
     {
-        $lessonSchedule->load(['centre', 'lessonSection', 'teacher', 'students']);
+        $lessonSchedule->load(['centre', 'lessonSection', 'teacher', 'subject', 'students']);
         
         return view('lesson-schedules.show', compact('lessonSchedule'));
     }
@@ -100,6 +103,7 @@ class LessonScheduleController extends Controller
                 'name' => $teacher->user->name
             ];
         })->pluck('name', 'id');
+        $subjects = Subject::where('is_active', true)->orderBy('name')->pluck('name', 'id');
         $daysOfWeek = [
             'Monday' => 'Monday',
             'Tuesday' => 'Tuesday',
@@ -110,7 +114,7 @@ class LessonScheduleController extends Controller
             'Sunday' => 'Sunday',
         ];
         
-        return view('lesson-schedules.edit', compact('lessonSchedule', 'centres', 'lessonSections', 'teachers', 'daysOfWeek'));
+        return view('lesson-schedules.edit', compact('lessonSchedule', 'centres', 'lessonSections', 'teachers', 'subjects', 'daysOfWeek'));
     }
 
     /**
@@ -122,6 +126,7 @@ class LessonScheduleController extends Controller
             'centre_id' => 'required|exists:centres,id',
             'lesson_section_id' => 'required|exists:lesson_sections,id',
             'teacher_id' => 'required|exists:teachers,id',
+            'subject_id' => 'required|exists:subjects,id',
             'day_of_week' => 'required|in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday',
             'start_date' => 'required|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',

@@ -13,6 +13,7 @@ class Teacher extends Model
 
     protected $fillable = [
         'user_id',
+        'centre_id',
         'staff_id',
         'teacher_id', // Alias for staff_id in the views
         'qualification',
@@ -102,6 +103,14 @@ class Teacher extends Model
     public function department()
     {
         return $this->belongsTo(Department::class);
+    }
+    
+    /**
+     * Get the centre that the teacher belongs to.
+     */
+    public function centre()
+    {
+        return $this->belongsTo(Centre::class);
     }
 
     /**

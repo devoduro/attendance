@@ -15,6 +15,7 @@ class Subject extends Model
      * @var array<int, string>
      */
     protected $fillable = [
+        'centre_id',
         'name',
         'code',
         'department_id',
@@ -38,5 +39,21 @@ class Subject extends Model
         
         // Otherwise, use the parent method
         return parent::scopeWhere($query, $column, $value);
+    }
+    
+    /**
+     * Get the centre that owns the subject.
+     */
+    public function centre()
+    {
+        return $this->belongsTo(Centre::class);
+    }
+    
+    /**
+     * Get the lesson schedules for this subject.
+     */
+    public function lessonSchedules()
+    {
+        return $this->hasMany(LessonSchedule::class);
     }
 }

@@ -32,7 +32,8 @@
                     </div>
                     <h2 class="text-xl font-bold text-gray-900">{{ $teacher->user->name }}</h2>
                     <p class="text-gray-500 mb-2">Teacher ID: {{ $teacher->teacher_id }}</p>
-                    <p class="text-gray-500 mb-4">{{ $teacher->department->name ?? 'No Department' }}</p>
+                    <p class="text-gray-500">{{ $teacher->department->name ?? 'No Department' }}</p>
+                    <p class="text-gray-500 mb-4">{{ $teacher->centre->name ?? 'No Centre' }}</p>
                     
                     <div class="w-full mt-4">
                         <div class="flex items-center py-2 border-t border-gray-200">

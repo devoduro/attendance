@@ -85,6 +85,22 @@
                 </div>
                 
                 <div>
+                    <label for="centre_id" class="block text-sm font-medium text-gray-700 mb-1">Centre <span class="text-red-600">*</span></label>
+                    <select name="centre_id" id="centre_id" required
+                        class="w-full border-gray-300 rounded-md shadow-sm focus:border-primary-300 focus:ring focus:ring-primary-200 focus:ring-opacity-50">
+                        <option value="">Select Centre</option>
+                        @foreach($centres as $centre)
+                            <option value="{{ $centre->id }}" {{ old('centre_id') == $centre->id ? 'selected' : '' }}>
+                                {{ $centre->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('centre_id')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
+                
+                <div>
                     <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
                     <input type="text" name="phone" id="phone" value="{{ old('phone') }}"
                         class="w-full border-gray-300 rounded-md shadow-sm focus:border-primary-300 focus:ring focus:ring-primary-200 focus:ring-opacity-50">

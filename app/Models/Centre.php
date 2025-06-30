@@ -48,4 +48,20 @@ class Centre extends Model
     {
         return $this->hasMany(LessonSchedule::class);
     }
+    
+    /**
+     * Get the teachers associated with the centre.
+     */
+    public function teachers(): HasMany
+    {
+        return $this->hasMany(Teacher::class);
+    }
+    
+    /**
+     * Get the subjects associated with the centre.
+     */
+    public function subjects(): HasMany
+    {
+        return $this->hasMany(Subject::class);
+    }
 }

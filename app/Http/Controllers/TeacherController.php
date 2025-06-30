@@ -22,29 +22,30 @@ class TeacherController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Teacher::with(['user', 'department']);
+        $query = Teacher::with(['user', 'department', 'centre']);
         
-        // Filter by search term
+        // Apply search filter
         if ($request->filled('search')) {
-            $search = $request->input('search');
-            $query->where(function($q) use ($search) {
-                $q->whereHas('user', function($userQuery) use ($search) {
-                    $userQuery->where('name', 'like', "%{$search}%")
-                        ->orWhere('email', 'like', "%{$search}%");
-                })
-                ->orWhere('staff_id', 'like', "%{$search}%")
-                ->orWhere('phone_number', 'like', "%{$search}%");
-            });
+            $search = $request->search;
+            $query->whereHas('user', function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%");
+            })->orWhere('staff_id', 'like', "%{$search}%");
         }
         
-        // Filter by department
+        // Apply department filter
         if ($request->filled('department')) {
-            $query->where('department_id', $request->input('department'));
+            $query->where('department_id', $request->department);
         }
         
-        // Filter by status
+        // Apply centre filter
+        if ($request->filled('centre')) {
+            $query->where('centre_id', $request->centre);
+        }
+        
+        // Apply status filter
         if ($request->filled('status')) {
-            $query->where('status', $request->input('status'));
+            $query->where('status', $request->status);
         }
         
         // Subject filtering removed
@@ -65,8 +66,9 @@ class TeacherController extends Controller
     public function create()
     {
         $departments = Department::all();
+        $centres = \App\Models\Centre::where('is_active', true)->get();
         
-        return view('teachers.create', compact('departments'));
+        return view('teachers.create', compact('departments', 'centres'));
     }
 
     /**
@@ -84,6 +86,7 @@ class TeacherController extends Controller
             'teacher_id' => 'required|string|max:255|unique:teachers,staff_id',
             'qualification' => 'nullable|string|max:255',
             'department_id' => 'nullable|exists:departments,id',
+            'centre_id' => 'required|exists:centres,id',
             'phone' => 'nullable|string|max:20',
             // 'bio' field validation removed as it doesn't exist in the database
             'profile_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
@@ -111,6 +114,7 @@ class TeacherController extends Controller
             // Create teacher profile
             $teacher = Teacher::create([
                 'user_id' => $user->id,
+                'centre_id' => $request->centre_id,
                 'staff_id' => $request->teacher_id,
                 'qualification' => $request->qualification,
                 'department_id' => $request->department_id,
@@ -159,10 +163,12 @@ class TeacherController extends Controller
     public function edit(Teacher $teacher)
     {
         $departments = Department::all();
+        $centres = \App\Models\Centre::where('is_active', true)->get();
         
         return view('teachers.edit', compact(
             'teacher', 
-            'departments'
+            'departments',
+            'centres'
         ));
     }
 
@@ -181,6 +187,7 @@ class TeacherController extends Controller
             'teacher_id' => 'required|string|max:255|unique:teachers,staff_id,' . $teacher->id,
             'qualification' => 'nullable|string|max:255',
             'department_id' => 'nullable|exists:departments,id',
+            'centre_id' => 'required|exists:centres,id',
             'phone' => 'nullable|string|max:20',
             // 'bio' field validation removed as it doesn't exist in the database
             'profile_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
@@ -208,6 +215,7 @@ class TeacherController extends Controller
                 'staff_id' => $request->teacher_id,
                 'qualification' => $request->qualification,
                 'department_id' => $request->department_id,
+                'centre_id' => $request->centre_id,
                 'phone_number' => $request->phone,
                 // 'bio' field removed as it doesn't exist in the database
             ];
