@@ -128,6 +128,28 @@
                     </div>
                 </div>
                 
+                <!-- Weekly Repeat Field -->
+                <div class="mb-6">
+                    <div class="flex flex-col md:flex-row md:items-center">
+                        <label for="repeat_weekly" class="block text-sm font-medium text-gray-700 md:w-1/4 mb-2 md:mb-0">
+                            Weekly Repeat
+                        </label>
+                        <div class="md:w-3/4">
+                            <div class="flex items-center">
+                                <div class="form-check form-switch">
+                                    <input type="checkbox" id="repeat_weekly" name="repeat_weekly" value="1" 
+                                        class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" 
+                                        {{ old('repeat_weekly', '1') == '1' ? 'checked' : '' }}>
+                                    <label for="repeat_weekly" class="ml-2 block text-sm text-gray-900">
+                                        Repeat Weekly
+                                    </label>
+                                </div>
+                            </div>
+                            <p class="mt-1 text-sm text-gray-500">When enabled, this lesson section will be scheduled to repeat every week</p>
+                        </div>
+                    </div>
+                </div>
+                
                 <!-- Submit Button -->
                 <div class="flex flex-col md:flex-row md:items-center">
                     <div class="md:w-1/4"></div>

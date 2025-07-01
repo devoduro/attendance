@@ -77,6 +77,22 @@
                     </div>
                     
                     <div>
+                        <label for="subject_id" class="block text-sm font-medium text-gray-700 mb-1">
+                            <div class="flex items-center">
+                                <i class="fas fa-book text-gray-400 mr-2"></i>Subject
+                            </div>
+                        </label>
+                        <select id="subject_id" name="subject_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50">
+                            <option value="">All Subjects</option>
+                            @foreach($subjects as $subject)
+                                <option value="{{ $subject->id }}" {{ request('subject_id') == $subject->id ? 'selected' : '' }}>
+                                    {{ $subject->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    
+                    <div>
                         <label for="date_from" class="block text-sm font-medium text-gray-700 mb-1">
                             <div class="flex items-center">
                                 <i class="fas fa-calendar-minus text-gray-400 mr-2"></i>Date From
@@ -247,6 +263,11 @@
                             </th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 <div class="flex items-center">
+                                    <i class="fas fa-book mr-2 text-purple-500"></i>Subject
+                                </div>
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <div class="flex items-center">
                                     <i class="fas fa-chalkboard-teacher mr-2 text-purple-500"></i>Teacher
                                 </div>
                             </th>
@@ -282,6 +303,7 @@
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $attendance->student->user->name }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $attendance->lessonSchedule->centre->name }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $attendance->lessonSchedule->subject->name ?? 'N/A' }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $attendance->lessonSchedule->teacher->user->name ?? 'N/A' }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                     <span class="px-2 py-1 text-xs rounded-full bg-purple-100 text-purple-800">
@@ -312,7 +334,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="8" class="px-6 py-10 text-center text-gray-500">
+                                <td colspan="9" class="px-6 py-10 text-center text-gray-500">
                                     <div class="flex flex-col items-center justify-center">
                                         <i class="fas fa-clipboard-list text-4xl text-gray-300 mb-3"></i>
                                         <p>No attendance records found.</p>

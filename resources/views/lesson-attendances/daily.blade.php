@@ -54,9 +54,25 @@
                     </label>
                     <select id="centre_id" name="centre_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50">
                         <option value="">All Centres</option>
-                        @foreach($centres as $centre)
-                            <option value="{{ $centre->id }}" {{ request('centre_id') == $centre->id ? 'selected' : '' }}>
-                                {{ $centre->name }}
+                        @foreach($centres as $id => $name)
+                            <option value="{{ $id }}" {{ request('centre_id') == $id ? 'selected' : '' }}>
+                                {{ $name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                
+                <div class="flex-grow-0 min-w-[200px]">
+                    <label for="subject_id" class="block text-sm font-medium text-gray-700 mb-1">
+                        <div class="flex items-center">
+                            <i class="fas fa-book text-gray-400 mr-2"></i>Subject
+                        </div>
+                    </label>
+                    <select id="subject_id" name="subject_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50">
+                        <option value="">All Subjects</option>
+                        @foreach($subjects as $id => $name)
+                            <option value="{{ $id }}" {{ request('subject_id') == $id ? 'selected' : '' }}>
+                                {{ $name }}
                             </option>
                         @endforeach
                     </select>
@@ -187,6 +203,11 @@
                                 </th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     <div class="flex items-center">
+                                        <i class="fas fa-book mr-1 text-gray-400"></i> Subject
+                                    </div>
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <div class="flex items-center">
                                         <i class="fas fa-chalkboard-teacher mr-1 text-gray-400"></i> Teacher
                                     </div>
                                 </th>
@@ -217,6 +238,12 @@
                                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                                             <i class="fas fa-clock mr-1"></i>
                                             {{ $schedule->lessonSection->start_time }} - {{ $schedule->lessonSection->end_time }}
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                            <i class="fas fa-book mr-1"></i>
+                                            {{ $schedule->subject->name ?? 'N/A' }}
                                         </span>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">

@@ -48,6 +48,10 @@
                                 <td class="px-4 py-3 text-sm text-gray-900">{{ $lessonSchedule->teacher->user->name ?? 'N/A' }}</td>
                             </tr>
                             <tr>
+                                <th class="px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subject</th>
+                                <td class="px-4 py-3 text-sm text-gray-900">{{ $lessonSchedule->subject->name ?? 'N/A' }}</td>
+                            </tr>
+                            <tr>
                                 <th class="px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Start Date</th>
                                 <td class="px-4 py-3 text-sm text-gray-900">{{ $lessonSchedule->start_date->format('d M Y') }}</td>
                             </tr>

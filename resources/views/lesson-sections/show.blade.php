@@ -101,6 +101,19 @@
                                 <tr>
                                     <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         <div class="flex items-center">
+                                            <i class="fas fa-sync-alt text-blue-500 mr-2"></i> Weekly Repeat
+                                        </div>
+                                    </th>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                        <span class="px-2.5 py-0.5 rounded-full text-xs font-medium {{ isset($lessonSection->repeat_weekly) && $lessonSection->repeat_weekly ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800' }} inline-flex items-center">
+                                            <i class="fas fa-{{ isset($lessonSection->repeat_weekly) && $lessonSection->repeat_weekly ? 'sync-alt' : 'times' }} mr-1"></i>
+                                            {{ isset($lessonSection->repeat_weekly) && $lessonSection->repeat_weekly ? 'Repeats Weekly' : 'No Repeat' }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        <div class="flex items-center">
                                             <i class="fas fa-calendar-plus text-blue-500 mr-2"></i> Created At
                                         </div>
                                     </th>

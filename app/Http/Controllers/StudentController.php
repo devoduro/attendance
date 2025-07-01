@@ -6,7 +6,7 @@ use App\Models\Student;
 use App\Models\User;
 use App\Models\SchoolClass;
 // Program model import removed
-use App\Models\AcademicRecord;
+// AcademicRecord import removed
 use App\Exports\StudentsExport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -346,14 +346,9 @@ class StudentController extends Controller
             }
         }
         
-        $student->load(['user', 'class', 'program']);
-        $academicRecords = AcademicRecord::where('student_id', $student->id)
-            ->with(['subject', 'class'])
-            ->orderBy('academic_year', 'desc')
-            ->orderBy('term', 'desc')
-            ->get();
+        $student->load(['user', 'class']);
             
-        return view('students.show', compact('student', 'academicRecords'));
+        return view('students.show', compact('student'));
     }
 
     /**

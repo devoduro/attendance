@@ -6,6 +6,7 @@ use App\Exports\LessonAttendancesExport;
 use App\Models\LessonAttendance;
 use App\Models\LessonSchedule;
 use App\Models\Student;
+use App\Models\Teacher;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
@@ -20,7 +21,7 @@ class LessonAttendanceController extends Controller
      */
     public function index(Request $request)
     {
-        $query = LessonAttendance::with(['student.user', 'lessonSchedule.lessonSection']);
+        $query = LessonAttendance::with(['student.user', 'lessonSchedule.lessonSection', 'lessonSchedule.subject', 'lessonSchedule.teacher.user']);
         
         // Apply filters if provided
         if ($request->filled('centre_id')) {
@@ -32,6 +33,12 @@ class LessonAttendanceController extends Controller
         if ($request->filled('teacher_id')) {
             $query->whereHas('lessonSchedule', function($q) use ($request) {
                 $q->where('teacher_id', $request->teacher_id);
+            });
+        }
+        
+        if ($request->filled('subject_id')) {
+            $query->whereHas('lessonSchedule', function($q) use ($request) {
+                $q->where('subject_id', $request->subject_id);
             });
         }
         
@@ -62,12 +69,14 @@ class LessonAttendanceController extends Controller
         $centres = \App\Models\Centre::where('is_active', true)->get();
         $teachers = \App\Models\Teacher::with('user')->where('status', 'active')->get();
         $students = \App\Models\Student::with('user')->where('status', 'active')->get();
+        $subjects = \App\Models\Subject::where('status', 'active')->get();
             
         return view('lesson-attendances.index', compact(
             'attendances', 
             'centres', 
             'teachers', 
-            'students', 
+            'students',
+            'subjects',
             'presentCount', 
             'absentCount', 
             'lateCount'
@@ -85,7 +94,8 @@ class LessonAttendanceController extends Controller
             'student.user', 
             'lessonSchedule.lessonSection', 
             'lessonSchedule.class',
-            'lessonSchedule.teacher.user'
+            'lessonSchedule.teacher.user',
+            'lessonSchedule.subject'
         ]);
         
         // Apply filters if provided
@@ -98,6 +108,12 @@ class LessonAttendanceController extends Controller
         if ($request->filled('teacher_id')) {
             $query->whereHas('lessonSchedule', function($q) use ($request) {
                 $q->where('teacher_id', $request->teacher_id);
+            });
+        }
+        
+        if ($request->filled('subject_id')) {
+            $query->whereHas('lessonSchedule', function($q) use ($request) {
+                $q->where('subject_id', $request->subject_id);
             });
         }
         
@@ -117,40 +133,40 @@ class LessonAttendanceController extends Controller
             $query->where('status', $request->status);
         }
         
-        $fileName = 'attendance_records_' . date('Y-m-d_His');
+        $attendances = $query->orderBy('attendance_date', 'desc')->get();
         
-        switch ($format) {
-            case 'csv':
-                return Excel::download(new LessonAttendancesExport($query), $fileName . '.csv', \Maatwebsite\Excel\Excel::CSV);
-            
-            case 'pdf':
-                // For PDF export, we need to get the data first
-                $attendances = $query->get();
-                
-                $pdf = PDF::loadView('exports.lesson-attendances-pdf', compact('attendances'));
-                return $pdf->download($fileName . '.pdf');
-            
-            case 'excel':
-            default:
-                return Excel::download(new LessonAttendancesExport($query), $fileName . '.xlsx');
+        if ($format === 'excel') {
+            return Excel::download(new LessonAttendancesExport($attendances), 'attendance_report.xlsx');
+        } else if ($format === 'pdf') {
+            $pdf = PDF::loadView('exports.lesson-attendances-pdf', compact('attendances'));
+            return $pdf->download('attendance_report.pdf');
         }
+        
+        return back()->with('error', 'Invalid export format.');
     }
     
     /**
-     * Show attendance for a specific date.
+     * Show attendance for the current day.
      */
     public function daily(Request $request)
     {
         $date = $request->input('date', now()->toDateString());
         $centreId = $request->input('centre_id');
+        $subjectId = $request->input('subject_id');
         
-        $query = LessonSchedule::with(['centre', 'lessonSection', 'teacher.user'])
-            ->whereHas('students', function ($query) {
-                $query->where('is_active', true);
+        $query = LessonSchedule::with(['centre', 'lessonSection', 'teacher.user', 'subject'])
+            ->where('start_date', '<=', $date)
+            ->where(function($q) use ($date) {
+                $q->whereNull('end_date')
+                  ->orWhere('end_date', '>=', $date);
             });
             
         if ($centreId) {
             $query->where('centre_id', $centreId);
+        }
+        
+        if ($subjectId) {
+            $query->where('subject_id', $subjectId);
         }
         
         // Get day of week for the selected date
@@ -160,8 +176,43 @@ class LessonAttendanceController extends Controller
         $lessonSchedules = $query->get();
         
         $centres = \App\Models\Centre::where('is_active', true)->pluck('name', 'id');
+        $subjects = \App\Models\Subject::where('status', 'active')->pluck('name', 'id');
+        $selectedDate = Carbon::parse($date);
         
-        return view('lesson-attendances.daily', compact('lessonSchedules', 'date', 'centres', 'centreId'));
+        // Calculate total students for the selected lesson schedules
+        $totalStudents = 0;
+        $attendanceTaken = 0;
+        $totalPossibleAttendance = 0;
+        $presentCount = 0;
+        
+        foreach ($lessonSchedules as $schedule) {
+            $studentCount = $schedule->students()->count();
+            $totalStudents += $studentCount;
+            $totalPossibleAttendance += $studentCount;
+            
+            // Count how many attendance records exist for this schedule on this date
+            $attendanceRecords = \App\Models\LessonAttendance::where('lesson_schedule_id', $schedule->id)
+                ->whereDate('attendance_date', $date);
+                
+            $attendanceTaken += $attendanceRecords->count();
+            
+            // Count how many students are present
+            $presentCount += \App\Models\LessonAttendance::where('lesson_schedule_id', $schedule->id)
+                ->whereDate('attendance_date', $date)
+                ->where('status', 'present')
+                ->count();
+        }
+        
+        // Calculate attendance taken percentage
+        $attendanceTakenPercentage = $totalPossibleAttendance > 0 ? round(($attendanceTaken / $totalPossibleAttendance) * 100) : 0;
+        
+        // Calculate present rate percentage
+        $presentRate = $attendanceTaken > 0 ? round(($presentCount / $attendanceTaken) * 100) : 0;
+        
+        return view('lesson-attendances.daily', compact(
+            'lessonSchedules', 'date', 'centres', 'subjects', 'centreId', 
+            'subjectId', 'selectedDate', 'totalStudents', 'attendanceTakenPercentage', 'presentRate'
+        ));
     }
     
     /**
@@ -169,12 +220,14 @@ class LessonAttendanceController extends Controller
      */
     public function weekly(Request $request)
     {
-        $startOfWeek = now()->startOfWeek();
-        $endOfWeek = now()->endOfWeek();
+        $weekStart = $request->input('week_start') ? Carbon::parse($request->input('week_start')) : now()->startOfWeek();
+        $startOfWeek = $weekStart->copy()->startOfWeek();
+        $endOfWeek = $startOfWeek->copy()->endOfWeek();
         
         $centreId = $request->input('centre_id');
+        $subjectId = $request->input('subject_id');
         
-        $query = LessonAttendance::with(['student.user', 'lessonSchedule.lessonSection', 'lessonSchedule.centre'])
+        $query = LessonAttendance::with(['student.user', 'lessonSchedule.lessonSection', 'lessonSchedule.centre', 'lessonSchedule.subject', 'lessonSchedule.teacher.user'])
             ->whereBetween('attendance_date', [$startOfWeek, $endOfWeek]);
             
         if ($centreId) {
@@ -183,13 +236,32 @@ class LessonAttendanceController extends Controller
             });
         }
         
+        if ($subjectId) {
+            $query->whereHas('lessonSchedule', function ($q) use ($subjectId) {
+                $q->where('subject_id', $subjectId);
+            });
+        }
+        
         $attendances = $query->orderBy('attendance_date')
             ->get()
             ->groupBy('attendance_date');
+        
+        // Calculate statistics
+        $totalLessons = $attendances->count();
+        $totalStudents = $attendances->flatten()->count();
+        $presentCount = $attendances->flatten()->where('status', 'present')->count();
+        $absentCount = $attendances->flatten()->where('status', 'absent')->count();
+        $lateCount = $attendances->flatten()->where('status', 'late')->count();
+        $presentRate = $totalStudents > 0 ? round(($presentCount / $totalStudents) * 100) : 0;
             
         $centres = \App\Models\Centre::where('is_active', true)->pluck('name', 'id');
+        $subjects = \App\Models\Subject::where('status', 'active')->pluck('name', 'id');
         
-        return view('lesson-attendances.weekly', compact('attendances', 'startOfWeek', 'endOfWeek', 'centres', 'centreId'));
+        return view('lesson-attendances.weekly', compact(
+            'attendances', 'weekStart', 'startOfWeek', 'endOfWeek', 'centres', 'subjects', 
+            'centreId', 'subjectId', 'totalLessons', 'totalStudents', 'presentCount', 
+            'absentCount', 'lateCount', 'presentRate'
+        ));
     }
     
     /**
@@ -197,14 +269,20 @@ class LessonAttendanceController extends Controller
      */
     public function monthly(Request $request)
     {
-        $month = $request->input('month', now()->month);
-        $year = $request->input('year', now()->year);
+        $monthInput = $request->input('month');
+        if ($monthInput) {
+            $selectedMonth = Carbon::createFromFormat('Y-m', $monthInput);
+        } else {
+            $selectedMonth = now();
+        }
+        
+        $startDate = $selectedMonth->copy()->startOfMonth();
+        $endDate = $selectedMonth->copy()->endOfMonth();
+        
         $centreId = $request->input('centre_id');
+        $subjectId = $request->input('subject_id');
         
-        $startDate = Carbon::createFromDate($year, $month, 1)->startOfMonth();
-        $endDate = Carbon::createFromDate($year, $month, 1)->endOfMonth();
-        
-        $query = LessonAttendance::with(['student.user', 'lessonSchedule.lessonSection', 'lessonSchedule.centre'])
+        $query = LessonAttendance::with(['student.user', 'lessonSchedule.lessonSection', 'lessonSchedule.centre', 'lessonSchedule.subject', 'lessonSchedule.teacher.user'])
             ->whereBetween('attendance_date', [$startDate, $endDate]);
             
         if ($centreId) {
@@ -213,11 +291,26 @@ class LessonAttendanceController extends Controller
             });
         }
         
+        if ($subjectId) {
+            $query->whereHas('lessonSchedule', function ($q) use ($subjectId) {
+                $q->where('subject_id', $subjectId);
+            });
+        }
+        
         $attendances = $query->orderBy('attendance_date')
             ->get()
             ->groupBy('attendance_date');
+        
+        // Calculate statistics
+        $totalLessons = $attendances->count();
+        $totalStudents = $attendances->flatten()->count();
+        $presentCount = $attendances->flatten()->where('status', 'present')->count();
+        $absentCount = $attendances->flatten()->where('status', 'absent')->count();
+        $lateCount = $attendances->flatten()->where('status', 'late')->count();
+        $presentRate = $totalStudents > 0 ? round(($presentCount / $totalStudents) * 100) : 0;
             
         $centres = \App\Models\Centre::where('is_active', true)->pluck('name', 'id');
+        $subjects = \App\Models\Subject::where('status', 'active')->pluck('name', 'id');
         
         $months = [
             1 => 'January',
@@ -236,7 +329,11 @@ class LessonAttendanceController extends Controller
         
         $years = range(now()->year - 2, now()->year + 2);
         
-        return view('lesson-attendances.monthly', compact('attendances', 'month', 'year', 'centres', 'centreId', 'months', 'years'));
+        return view('lesson-attendances.monthly', compact(
+            'attendances', 'selectedMonth', 'centres', 'subjects', 'centreId', 'subjectId',
+            'months', 'years', 'totalLessons', 'totalStudents', 'presentCount', 'absentCount',
+            'lateCount', 'presentRate'
+        ));
     }
     
     /**
@@ -247,7 +344,7 @@ class LessonAttendanceController extends Controller
         $date = $request->input('date', now()->toDateString());
         
         // Load the students enrolled in this lesson schedule
-        $lessonSchedule->load(['students.user', 'lessonSection', 'centre']);
+        $lessonSchedule->load(['students.user', 'lessonSection', 'centre', 'subject', 'teacher.user']);
         
         // Check if attendance records already exist for this date and lesson schedule
         $attendances = LessonAttendance::where('lesson_schedule_id', $lessonSchedule->id)
@@ -255,10 +352,9 @@ class LessonAttendanceController extends Controller
             ->get()
             ->keyBy('student_id');
         
-        // Convert date string to Carbon instance for the view
         $attendanceDate = Carbon::parse($date);
-            
-        return view('lesson-attendances.take', compact('lessonSchedule', 'attendanceDate', 'attendances'));
+        
+        return view('lesson-attendances.take', compact('lessonSchedule', 'attendances', 'attendanceDate'));
     }
     
     /**
@@ -267,13 +363,13 @@ class LessonAttendanceController extends Controller
     public function storeAttendance(Request $request, LessonSchedule $lessonSchedule)
     {
         $request->validate([
-            'attendance_date' => 'required|date',
+            'date' => 'required|date',
             'attendance' => 'required|array',
             'attendance.*.student_id' => 'required|exists:students,id',
             'attendance.*.status' => 'required|in:present,absent',
         ]);
         
-        $date = $request->input('attendance_date');
+        $date = $request->input('date');
         $attendanceData = $request->input('attendance');
         
         foreach ($attendanceData as $data) {
@@ -387,8 +483,9 @@ class LessonAttendanceController extends Controller
         $endDate = $request->input('end_date', now()->toDateString());
         $centreId = $request->input('centre_id');
         $studentId = $request->input('student_id');
+        $subjectId = $request->input('subject_id');
         
-        $query = LessonAttendance::with(['student.user', 'lessonSchedule.lessonSection', 'lessonSchedule.centre'])
+        $query = LessonAttendance::with(['student.user', 'lessonSchedule.lessonSection', 'lessonSchedule.centre', 'lessonSchedule.subject'])
             ->whereBetween('attendance_date', [$startDate, $endDate]);
             
         if ($centreId) {
@@ -399,6 +496,12 @@ class LessonAttendanceController extends Controller
         
         if ($studentId) {
             $query->where('student_id', $studentId);
+        }
+        
+        if ($subjectId) {
+            $query->whereHas('lessonSchedule', function ($q) use ($subjectId) {
+                $q->where('subject_id', $subjectId);
+            });
         }
         
         $attendances = $query->orderBy('attendance_date')->get();
@@ -420,6 +523,7 @@ class LessonAttendanceController extends Controller
         
         $centres = \App\Models\Centre::where('is_active', true)->pluck('name', 'id');
         $students = Student::with('user')->get()->pluck('user.name', 'id');
+        $subjects = \App\Models\Subject::where('status', 'active')->pluck('name', 'id');
         
         return view('lesson-attendances.report', compact(
             'attendances', 
@@ -427,9 +531,11 @@ class LessonAttendanceController extends Controller
             'startDate', 
             'endDate', 
             'centres', 
-            'students', 
+            'students',
+            'subjects',
             'centreId', 
-            'studentId'
+            'studentId',
+            'subjectId'
         ));
     }
     
@@ -463,5 +569,232 @@ class LessonAttendanceController extends Controller
         
         return redirect()->route('dashboard')
             ->with('success', 'Birthday wishes sent to ' . $students->count() . ' students.');
+    }
+    
+    /**
+     * Display attendance report for a specific student.
+     *
+     * @param  \App\Models\Student  $student
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\View\View
+     */
+    public function studentAttendance(Student $student, Request $request)
+    {
+        // Get lesson schedules for this student
+        $lessonSchedules = $student->lessonSchedules()
+            ->with(['centre', 'lessonSection', 'subject', 'teacher.user'])
+            ->get();
+        
+        // Get attendance records for this student
+        $query = LessonAttendance::where('student_id', $student->id)
+            ->with(['lessonSchedule.centre', 'lessonSchedule.lessonSection', 'lessonSchedule.subject', 'lessonSchedule.teacher.user']);
+        
+        // Filter by lesson schedule if specified
+        if ($request->filled('lesson_schedule_id')) {
+            $query->where('lesson_schedule_id', $request->lesson_schedule_id);
+        }
+        
+        // Filter by date range if specified
+        if ($request->filled('date_from')) {
+            $query->where('attendance_date', '>=', $request->date_from);
+        }
+        
+        if ($request->filled('date_to')) {
+            $query->where('attendance_date', '<=', $request->date_to);
+        }
+        
+        // Filter by status if specified
+        if ($request->filled('status') && $request->status !== 'all') {
+            $query->where('status', $request->status);
+        }
+        
+        // Filter by subject if specified
+        if ($request->filled('subject_id')) {
+            $query->whereHas('lessonSchedule', function($q) use ($request) {
+                $q->where('subject_id', $request->subject_id);
+            });
+        }
+        
+        $attendances = $query->orderBy('attendance_date', 'desc')->paginate(15);
+        
+        // Calculate attendance statistics
+        $totalAttendances = $attendances->total();
+        $presentCount = $query->clone()->where('status', 'present')->count();
+        $absentCount = $query->clone()->where('status', 'absent')->count();
+        $attendanceRate = $totalAttendances > 0 ? ($presentCount / $totalAttendances) * 100 : 0;
+        
+        // Get all active subjects for the filter dropdown
+        $subjects = \App\Models\Subject::where('status', 'active')->pluck('name', 'id');
+        
+        return view('lesson-attendances.student-report', compact(
+            'student',
+            'attendances',
+            'lessonSchedules',
+            'totalAttendances',
+            'presentCount',
+            'absentCount',
+            'attendanceRate',
+            'subjects'
+        ));
+    }
+    
+    /**
+     * Export student attendance records to various formats.
+     *
+     * @param  \App\Models\Student  $student
+     * @param  string  $format
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Symfony\Component\HttpFoundation\BinaryFileResponse
+     */
+    public function exportStudentAttendance(Student $student, $format = 'pdf', Request $request)
+    {
+        // Get attendance records for this student
+        $query = LessonAttendance::where('student_id', $student->id)
+            ->with(['lessonSchedule.centre', 'lessonSchedule.lessonSection', 'lessonSchedule.subject', 'lessonSchedule.teacher.user']);
+        
+        // Apply filters similar to the studentAttendance method
+        if ($request->filled('lesson_schedule_id')) {
+            $query->where('lesson_schedule_id', $request->lesson_schedule_id);
+        }
+        
+        if ($request->filled('date_from')) {
+            $query->where('attendance_date', '>=', $request->date_from);
+        }
+        
+        if ($request->filled('date_to')) {
+            $query->where('attendance_date', '<=', $request->date_to);
+        }
+        
+        if ($request->filled('status') && $request->status !== 'all') {
+            $query->where('status', $request->status);
+        }
+        
+        if ($request->filled('subject_id')) {
+            $query->whereHas('lessonSchedule', function($q) use ($request) {
+                $q->where('subject_id', $request->subject_id);
+            });
+        }
+        
+        $attendances = $query->orderBy('attendance_date', 'desc')->get();
+        
+        // Calculate attendance statistics
+        $totalAttendances = $attendances->count();
+        $presentCount = $attendances->where('status', 'present')->count();
+        $absentCount = $attendances->where('status', 'absent')->count();
+        $attendanceRate = $totalAttendances > 0 ? ($presentCount / $totalAttendances) * 100 : 0;
+        
+        $data = [
+            'student' => $student,
+            'attendances' => $attendances,
+            'totalAttendances' => $totalAttendances,
+            'presentCount' => $presentCount,
+            'absentCount' => $absentCount,
+            'attendanceRate' => $attendanceRate,
+        ];
+        
+        // Export based on format
+        switch ($format) {
+            case 'pdf':
+                $pdf = PDF::loadView('exports.student-attendance-pdf', $data);
+                return $pdf->download('student_attendance_' . $student->id . '.pdf');
+            case 'excel':
+                return Excel::download(new StudentAttendanceExport($data), 'student_attendance_' . $student->id . '.xlsx');
+            case 'csv':
+                return Excel::download(new StudentAttendanceExport($data), 'student_attendance_' . $student->id . '.csv', \Maatwebsite\Excel\Excel::CSV);
+            default:
+                return redirect()->back()->with('error', 'Invalid export format');
+        }
+    }
+    
+    /**
+     * Display attendance report for a specific teacher.
+     *
+     * @param  \App\Models\Teacher  $teacher
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\View\View
+     */
+    public function teacherAttendance(Teacher $teacher, Request $request)
+    {
+        // Get lesson schedules for this teacher
+        $schedulesQuery = LessonSchedule::where('teacher_id', $teacher->id)
+            ->with(['centre', 'lessonSection', 'subject', 'students.user']);
+        
+        // Filter by centre if specified
+        if ($request->filled('centre_id')) {
+            $schedulesQuery->where('centre_id', $request->centre_id);
+        }
+        
+        // Filter by subject if specified
+        if ($request->filled('subject_id')) {
+            $schedulesQuery->where('subject_id', $request->subject_id);
+        }
+        
+        $lessonSchedules = $schedulesQuery->get();
+        
+        // Get recent attendance records for this teacher's schedules
+        $scheduleIds = $lessonSchedules->pluck('id')->toArray();
+        $attendancesQuery = LessonAttendance::whereIn('lesson_schedule_id', $scheduleIds)
+            ->with(['student.user', 'lessonSchedule.centre', 'lessonSchedule.lessonSection', 'lessonSchedule.subject']);
+        
+        // Filter by date range if specified
+        if ($request->filled('date_from')) {
+            $attendancesQuery->where('attendance_date', '>=', $request->date_from);
+        }
+        
+        if ($request->filled('date_to')) {
+            $attendancesQuery->where('attendance_date', '<=', $request->date_to);
+        } else {
+            // Default to last 30 days if no date range specified
+            $attendancesQuery->where('attendance_date', '>=', now()->subDays(30)->toDateString());
+        }
+        
+        // Filter by status if specified
+        if ($request->filled('status') && $request->status !== 'all') {
+            $attendancesQuery->where('status', $request->status);
+        }
+        
+        $recentAttendances = $attendancesQuery->orderBy('attendance_date', 'desc')->paginate(15);
+        
+        // Calculate attendance statistics
+        $attendanceStats = [];
+        foreach ($lessonSchedules as $schedule) {
+            $scheduleAttendances = LessonAttendance::where('lesson_schedule_id', $schedule->id);
+            
+            // Apply date filters to statistics as well
+            if ($request->filled('date_from')) {
+                $scheduleAttendances->where('attendance_date', '>=', $request->date_from);
+            }
+            
+            if ($request->filled('date_to')) {
+                $scheduleAttendances->where('attendance_date', '<=', $request->date_to);
+            } else {
+                $scheduleAttendances->where('attendance_date', '>=', now()->subDays(30)->toDateString());
+            }
+            
+            $totalAttendances = $scheduleAttendances->count();
+            $presentCount = $scheduleAttendances->clone()->where('status', 'present')->count();
+            $absentCount = $scheduleAttendances->clone()->where('status', 'absent')->count();
+            $attendanceRate = $totalAttendances > 0 ? ($presentCount / $totalAttendances) * 100 : 0;
+            
+            $attendanceStats[$schedule->id] = [
+                'total' => $totalAttendances,
+                'present' => $presentCount,
+                'absent' => $absentCount,
+                'rate' => $attendanceRate,
+            ];
+        }
+        
+        // Get all centres and subjects for filter dropdowns
+        $centres = \App\Models\Centre::where('is_active', true)->pluck('name', 'id');
+        $subjects = \App\Models\Subject::where('status', 'active')->pluck('name', 'id');
+        
+        return view('lesson-attendances.teacher-report', compact(
+            'teacher',
+            'lessonSchedules',
+            'recentAttendances',
+            'attendanceStats',
+            'centres',
+            'subjects'
+        ));
     }
 }

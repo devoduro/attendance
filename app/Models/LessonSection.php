@@ -21,6 +21,7 @@ class LessonSection extends Model
         'start_time',
         'end_time',
         'is_active',
+        'repeat_weekly',
     ];
 
     /**
@@ -32,6 +33,7 @@ class LessonSection extends Model
         'start_time' => 'datetime:H:i',
         'end_time' => 'datetime:H:i',
         'is_active' => 'boolean',
+        'repeat_weekly' => 'boolean',
     ];
 
     /**
@@ -61,6 +63,6 @@ class LessonSection extends Model
             $end = $end->addDay();
         }
         
-        return $end->diffInMinutes($start);
+        return $start->diffInMinutes($end);
     }
 }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Centre;
 use App\Models\LessonSchedule;
 use App\Models\LessonSection;
+use App\Models\Student;
 use App\Models\Subject;
 use App\Models\Teacher;
 use Illuminate\Http\Request;
@@ -15,10 +16,32 @@ class LessonScheduleController extends Controller
     /**
      * Display a listing of the lesson schedules.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $lessonSchedules = LessonSchedule::with(['centre', 'lessonSection', 'teacher', 'subject'])
-            ->orderBy('day_of_week')
+        $query = LessonSchedule::with(['centre', 'lessonSection', 'teacher', 'subject']);
+        
+        // Apply filters
+        if ($request->filled('centre_id')) {
+            $query->where('centre_id', $request->centre_id);
+        }
+        
+        if ($request->filled('subject_id')) {
+            $query->where('subject_id', $request->subject_id);
+        }
+        
+        if ($request->filled('teacher_id')) {
+            $query->where('teacher_id', $request->teacher_id);
+        }
+        
+        if ($request->filled('day_of_week')) {
+            $query->where('day_of_week', $request->day_of_week);
+        }
+        
+        if ($request->filled('status')) {
+            $query->where('is_active', $request->status);
+        }
+        
+        $lessonSchedules = $query->orderBy('day_of_week')
             ->orderBy('start_date')
             ->get();
             
@@ -30,15 +53,10 @@ class LessonScheduleController extends Controller
      */
     public function create()
     {
-        $centres = Centre::where('is_active', true)->orderBy('name')->pluck('name', 'id');
-        $lessonSections = LessonSection::where('is_active', true)->orderBy('start_time')->pluck('name', 'id');
-        $teachers = Teacher::orderBy('user_id')->get()->map(function ($teacher) {
-            return [
-                'id' => $teacher->id,
-                'name' => $teacher->user->name
-            ];
-        })->pluck('name', 'id');
-        $subjects = Subject::where('is_active', true)->orderBy('name')->pluck('name', 'id');
+        $centres = Centre::where('is_active', true)->orderBy('name')->get();
+        $lessonSections = LessonSection::where('is_active', true)->orderBy('start_time')->get();
+        $teachers = Teacher::with('user')->orderBy('user_id')->get();
+        $subjects = Subject::where('status', 'active')->orderBy('name')->get();
         $daysOfWeek = [
             'Monday' => 'Monday',
             'Tuesday' => 'Tuesday',
@@ -95,15 +113,10 @@ class LessonScheduleController extends Controller
      */
     public function edit(LessonSchedule $lessonSchedule)
     {
-        $centres = Centre::where('is_active', true)->orderBy('name')->pluck('name', 'id');
-        $lessonSections = LessonSection::where('is_active', true)->orderBy('start_time')->pluck('name', 'id');
-        $teachers = Teacher::orderBy('user_id')->get()->map(function ($teacher) {
-            return [
-                'id' => $teacher->id,
-                'name' => $teacher->user->name
-            ];
-        })->pluck('name', 'id');
-        $subjects = Subject::where('is_active', true)->orderBy('name')->pluck('name', 'id');
+        $centres = Centre::where('is_active', true)->orderBy('name')->get();
+        $lessonSections = LessonSection::where('is_active', true)->orderBy('start_time')->get();
+        $teachers = Teacher::with('user')->orderBy('user_id')->get();
+        $subjects = Subject::where('status', 'active')->orderBy('name')->get();
         $daysOfWeek = [
             'Monday' => 'Monday',
             'Tuesday' => 'Tuesday',
@@ -161,15 +174,15 @@ class LessonScheduleController extends Controller
      */
     public function assignStudentsForm(LessonSchedule $lessonSchedule)
     {
-        $lessonSchedule->load(['centre', 'students']);
+        $lessonSchedule->load(['centre', 'subject', 'students']);
         
         // Get all active centres for filtering
-        $centres = \App\Models\Centre::where('is_active', true)->orderBy('name')->get();
+        $centres = Centre::where('is_active', true)->orderBy('name')->get();
         
-        // Get students from the same centre
-        $students = \App\Models\Student::where('centre_id', $lessonSchedule->centre_id)
+        // Get all active students for assignment
+        $students = Student::with(['user', 'centre'])
             ->where('status', 'active')
-            ->with(['user', 'centre'])
+            ->orderBy('created_at', 'desc')
             ->get();
         
         $enrolledStudentIds = $lessonSchedule->students->pluck('id')->toArray();

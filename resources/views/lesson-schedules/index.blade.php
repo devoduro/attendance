@@ -32,7 +32,39 @@
         </div>
         <div class="px-6 py-4">
             <form action="{{ route('lesson-schedules.index') }}" method="GET" class="flex flex-col sm:flex-row flex-wrap gap-4 items-end">
-                {{-- Centre and Teacher filters commented out --}}
+                <div>
+                    <label for="centre_id" class="block text-sm font-medium text-gray-700 mb-1">Centre</label>
+                    <select class="block w-40 px-3 py-2 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500" id="centre_id" name="centre_id">
+                        <option value="">All Centres</option>
+                        @foreach(\App\Models\Centre::where('is_active', true)->orderBy('name')->get() as $centre)
+                            <option value="{{ $centre->id }}" {{ request('centre_id') == $centre->id ? 'selected' : '' }}>
+                                {{ $centre->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label for="subject_id" class="block text-sm font-medium text-gray-700 mb-1">Subject</label>
+                    <select class="block w-40 px-3 py-2 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500" id="subject_id" name="subject_id">
+                        <option value="">All Subjects</option>
+                        @foreach(\App\Models\Subject::where('status', 'active')->orderBy('name')->get() as $subject)
+                            <option value="{{ $subject->id }}" {{ request('subject_id') == $subject->id ? 'selected' : '' }}>
+                                {{ $subject->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label for="teacher_id" class="block text-sm font-medium text-gray-700 mb-1">Teacher</label>
+                    <select class="block w-40 px-3 py-2 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500" id="teacher_id" name="teacher_id">
+                        <option value="">All Teachers</option>
+                        @foreach(\App\Models\Teacher::with('user')->orderBy('user_id')->get() as $teacher)
+                            <option value="{{ $teacher->id }}" {{ request('teacher_id') == $teacher->id ? 'selected' : '' }}>
+                                {{ $teacher->user->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
                 <div>
                     <label for="day_of_week" class="block text-sm font-medium text-gray-700 mb-1">Day</label>
                     <select class="block w-40 px-3 py-2 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500" id="day_of_week" name="day_of_week">
@@ -80,6 +112,7 @@
                         <th class="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider border-b">Day</th>
                         <th class="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider border-b">Section</th>
                         <th class="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider border-b">Teacher</th>
+                        <th class="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider border-b">Subject</th>
                         <th class="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider border-b">Start Date</th>
                         <th class="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider border-b">End Date</th>
                         <th class="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider border-b">Status</th>
@@ -94,6 +127,7 @@
                             <td class="px-4 py-2 whitespace-nowrap">{{ $schedule->day_of_week }}</td>
                             <td class="px-4 py-2 whitespace-nowrap">{{ $schedule->lessonSection->name ?? '-' }}</td>
                             <td class="px-4 py-2 whitespace-nowrap">{{ $schedule->teacher->user->name ?? '-' }}</td>
+                            <td class="px-4 py-2 whitespace-nowrap">{{ $schedule->subject->name ?? '-' }}</td>
                             <td class="px-4 py-2 whitespace-nowrap">{{ $schedule->start_date }}</td>
                             <td class="px-4 py-2 whitespace-nowrap">{{ $schedule->end_date ?? '-' }}</td>
                             <td class="px-4 py-2">

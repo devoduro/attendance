@@ -1,9 +1,8 @@
 <?php
 
-use App\Http\Controllers\AcademicRecordController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ClassController;
- 
+use App\Http\Controllers\SubjectController;
 use App\Http\Controllers\DashboardController;
  
  
@@ -50,6 +49,22 @@ Route::middleware(['auth'])->group(function () {
     Route::get('students-import', [StudentController::class, 'importForm'])->name('students.import.form');
     Route::post('students-import', [StudentController::class, 'processImport'])->name('students.import.process');
     Route::get('students-import-template', [StudentController::class, 'downloadImportTemplate'])->name('students.import.template');
+    
+    // Subjects Management - Only accessible by admins and teachers
+    Route::middleware([\App\Http\Middleware\AdminTeacherMiddleware::class])->group(function () {
+        Route::resource('subjects', SubjectController::class);
+    });
+    
+    // Lesson Reschedule Requests - Accessible by all authenticated users including students and parents
+    Route::get('/lesson-reschedule', [App\Http\Controllers\LessonRescheduleController::class, 'create'])->name('lesson-reschedule.create');
+    Route::post('/lesson-reschedule', [App\Http\Controllers\LessonRescheduleController::class, 'store'])->name('lesson-reschedule.store');
+    Route::get('/lesson-reschedule/success', [App\Http\Controllers\LessonRescheduleController::class, 'success'])->name('lesson-reschedule.success');
+    
+    // Admin/Teacher only routes for managing reschedule requests
+    Route::middleware([\App\Http\Middleware\AdminTeacherMiddleware::class])->group(function () {
+        Route::get('/lesson-reschedule/manage', [App\Http\Controllers\LessonRescheduleController::class, 'index'])->name('lesson-reschedule.index');
+        Route::put('/lesson-reschedule/{rescheduleRequest}/status', [App\Http\Controllers\LessonRescheduleController::class, 'updateStatus'])->name('lesson-reschedule.update-status');
+    });
      
      
     // Reports
@@ -98,11 +113,13 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('teachers', \App\Http\Controllers\TeacherController::class);
     
     // Academic Records Management
+    /* Commented out due to missing controller
     Route::resource('academic-records', AcademicRecordController::class);
     Route::get('academic-records/reports', [AcademicRecordController::class, 'reports'])->name('academic-records.reports');
     Route::get('academic-records/{record}/print', [AcademicRecordController::class, 'print'])->name('academic-records.print');
     Route::get('academic-records/class/{class_id}/subject/{subject_id}', [AcademicRecordController::class, 'classSubject'])->name('academic-records.class-subject');
     Route::get('academic-records-bulk-entry', [AcademicRecordController::class, 'bulkEntryForm'])->name('academic-records.bulk-entry');
+    */
         
     // Teacher route redirects
     Route::middleware(['role:teacher'])->prefix('teacher')->group(function() {
@@ -111,6 +128,7 @@ Route::middleware(['auth'])->group(function () {
     });
        
   
+    /* Commented out due to missing controller
     Route::post('academic-records-bulk-store', [AcademicRecordController::class, 'bulkStore'])->name('academic-records.bulk-store');
     Route::get('academic-records-import-export', [AcademicRecordController::class, 'importExportForm'])->name('academic-records.import-export');
     Route::post('academic-records-import', [AcademicRecordController::class, 'import'])->name('academic-records.import');
@@ -119,13 +137,16 @@ Route::middleware(['auth'])->group(function () {
     Route::get('academic-records-export-report-cards', [AcademicRecordController::class, 'exportReportCards'])->name('academic-records.export-report-cards');
     Route::get('academic-records-bulk-upload', [AcademicRecordController::class, 'bulkUploadForm'])->name('academic-records.bulk-upload');
     Route::post('academic-records-bulk-upload', [AcademicRecordController::class, 'bulkUpload'])->name('academic-records.bulk-upload.store');
+    */
     
     // SMS Management
+    /* Commented out due to missing controller
     Route::resource('sms', SmsController::class);
     Route::post('sms/send-bulk', [SmsController::class, 'sendBulk'])->name('sms.send-bulk');
     Route::get('sms/history', [SmsController::class, 'history'])->name('sms.history');
     Route::get('sms/results-form', [SmsController::class, 'resultsForm'])->name('sms.results-form');
     Route::post('sms/send-results', [SmsController::class, 'sendResults'])->name('sms.send-results');
+    */
       
    
   
@@ -173,4 +194,9 @@ Route::middleware(['auth'])->group(function () {
     Route::post('lesson-attendances/{lessonSchedule}/store', [\App\Http\Controllers\LessonAttendanceController::class, 'storeAttendance'])->name('lesson-attendances.store');
     Route::post('lesson-attendances/{lessonSchedule}/update-status', [\App\Http\Controllers\LessonAttendanceController::class, 'updateStatus'])->name('lesson-attendances.update-status');
     Route::get('lesson-attendances/send-birthday-wishes', [\App\Http\Controllers\LessonAttendanceController::class, 'sendBirthdayWishes'])->name('lesson-attendances.send-birthday-wishes');
+    
+    // Student and Teacher Attendance Reports
+    Route::get('students/{student}/attendance', [\App\Http\Controllers\LessonAttendanceController::class, 'studentAttendance'])->name('students.attendance');
+    Route::get('students/{student}/attendance/export/{format?}', [\App\Http\Controllers\LessonAttendanceController::class, 'exportStudentAttendance'])->name('students.attendance.export');
+    Route::get('teachers/{teacher}/attendance', [\App\Http\Controllers\LessonAttendanceController::class, 'teacherAttendance'])->name('teachers.attendance');
 });

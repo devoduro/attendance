@@ -41,11 +41,18 @@
                         <p class="text-sm"><span class="font-medium">Teacher:</span> {{ $lessonSchedule->teacher->user->name ?? 'N/A' }}</p>
                     </div>
                     <div>
+                        <p class="text-sm"><span class="font-medium">Subject:</span> {{ $lessonSchedule->subject->name ?? 'N/A' }}</p>
+                    </div>
+                    <div>
                         <p class="text-sm"><span class="font-medium">Start Date:</span> {{ $lessonSchedule->start_date->format('d M Y') }}</p>
                     </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
                     <div>
                         <p class="text-sm"><span class="font-medium">End Date:</span> {{ $lessonSchedule->end_date ? $lessonSchedule->end_date->format('d M Y') : 'Ongoing' }}</p>
                     </div>
+                    <div></div>
+                    <div></div>
                 </div>
             </div>
         </div>
@@ -65,16 +72,30 @@
                         <input type="text" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50" id="search" placeholder="Type to search students...">
                     </div>
                     
-                    <div class="mb-4">
-                        <label for="centre-filter" class="block text-sm font-medium text-gray-700 mb-1">Filter by Centre</label>
-                        <select class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50" id="centre-filter">
-                            <option value="">All Centres</option>
-                            @foreach($centres as $centre)
-                                <option value="{{ $centre->id }}" {{ $centre->id == $lessonSchedule->centre_id ? 'selected' : '' }}>
-                                    {{ $centre->name }}
-                                </option>
-                            @endforeach
-                        </select>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="mb-4">
+                            <label for="centre-filter" class="block text-sm font-medium text-gray-700 mb-1">Filter by Centre</label>
+                            <select class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50" id="centre-filter">
+                                <option value="">All Centres</option>
+                                @foreach($centres as $centre)
+                                    <option value="{{ $centre->id }}" {{ $centre->id == $lessonSchedule->centre_id ? 'selected' : '' }}>
+                                        {{ $centre->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="subject-filter" class="block text-sm font-medium text-gray-700 mb-1">Filter by Subject</label>
+                            <select class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50" id="subject-filter">
+                                <option value="">All Subjects</option>
+                                @foreach(\App\Models\Subject::where('status', 'active')->orderBy('name')->get() as $subject)
+                                    <option value="{{ $subject->id }}" {{ $subject->id == $lessonSchedule->subject_id ? 'selected' : '' }}>
+                                        {{ $subject->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
                     </div>
                     
                     <div class="overflow-x-auto">
@@ -97,7 +118,7 @@
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
                                 @foreach($students as $student)
-                                    <tr class="student-row hover:bg-gray-50" data-centre="{{ $student->centre_id }}">
+                                    <tr class="student-row hover:bg-gray-50" data-centre="{{ $student->centre_id }}" data-subjects="">
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <div class="flex items-center">
                                                 <input type="checkbox" class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 student-checkbox" 
@@ -167,20 +188,37 @@
         
         // Handle centre filter
         $('#centre-filter').on('change', function() {
-            const centreId = $(this).val();
+            filterStudents();
+        });
+        
+        // Handle subject filter
+        $('#subject-filter').on('change', function() {
+            filterStudents();
+        });
+        
+        // Combined filter function
+        function filterStudents() {
+            const centreId = $('#centre-filter').val();
+            const subjectId = $('#subject-filter').val();
             
+            // Show all rows initially
+            $('.student-row').show();
+            
+            // Apply centre filter if selected
             if (centreId) {
-                // Show only rows with matching centre ID
-                $('.student-row').hide();
-                $('.student-row[data-centre="' + centreId + '"]').show();
-            } else {
-                // Show all rows
-                $('.student-row').show();
+                $('.student-row:not([data-centre="' + centreId + '"])').hide();
+            }
+            
+            // Apply subject filter if selected
+            if (subjectId) {
+                // Disable subject filtering since we don't have subject data
+                // This will be re-implemented when the subjects relationship is properly set up
+                console.log('Subject filtering is currently disabled');
             }
             
             // Update "Select All" checkbox state
             updateSelectAllState();
-        });
+        };
         
         // Update "Select All" checkbox state based on visible checkboxes
         function updateSelectAllState() {

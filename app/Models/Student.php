@@ -62,13 +62,7 @@ class Student extends Model
 
     // Program relationship removed
 
-    /**
-     * Get the academic records for the student.
-     */
-    public function academicRecords()
-    {
-        return $this->hasMany(AcademicRecord::class);
-    }
+    // Academic records relationship removed - table does not exist
 
     /**
      * Get the transcripts for the student.
@@ -141,34 +135,8 @@ class Student extends Model
      */
     public function calculateCGPA()
     {
-        $records = $this->academicRecords()->with('result')->get();
-        
-        if ($records->isEmpty()) {
-            return null;
-        }
-        
-        $totalGradePoints = 0;
-        $totalCreditHours = 0;
-        
-        foreach ($records as $record) {
-            // Skip records without results or credit hours
-            if (!$record->result || !$record->credit_hours) {
-                continue;
-            }
-            
-            $gradePoint = $this->getGradePoint($record->result->grade);
-            $creditHours = $record->credit_hours;
-            
-            $totalGradePoints += ($gradePoint * $creditHours);
-            $totalCreditHours += $creditHours;
-        }
-        
-        // Avoid division by zero
-        if ($totalCreditHours <= 0) {
-            return null;
-        }
-        
-        return $totalGradePoints / $totalCreditHours;
+        // Academic records functionality removed - table does not exist
+        return null;
     }
     
     /**
@@ -247,10 +215,7 @@ class Student extends Model
      */
     public function hasRelatedRecords()
     {
-        // Check if student has academic records
-        if ($this->academicRecords()->count() > 0) {
-            return true;
-        }
+        // Academic records check removed - table does not exist
         
         // Check if student has transcripts
         if ($this->transcripts()->count() > 0) {

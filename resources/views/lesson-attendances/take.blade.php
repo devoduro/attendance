@@ -47,11 +47,18 @@
                     <p class="text-sm"><span class="font-semibold">Teacher:</span> {{ $lessonSchedule->teacher->user->name ?? 'N/A' }}</p>
                 </div>
                 <div>
+                    <p class="text-sm"><span class="font-semibold">Subject:</span> {{ $lessonSchedule->subject->name ?? 'N/A' }}</p>
+                </div>
+                <div>
                     <p class="text-sm"><span class="font-semibold">Students:</span> {{ $lessonSchedule->students->count() }}</p>
                 </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
                 <div>
                     <p class="text-sm"><span class="font-semibold">Date:</span> {{ $attendanceDate->format('d M Y') }}</p>
                 </div>
+                <div></div>
+                <div></div>
             </div>
         </div>
     </div>

@@ -46,6 +46,18 @@
                     </select>
                 </div>
                 
+                <div class="form-group mb-2 mr-2">
+                    <label for="subject_id" class="sr-only">Subject</label>
+                    <select class="form-control" id="subject_id" name="subject_id">
+                        <option value="">All Subjects</option>
+                        @foreach($subjects as $subject)
+                            <option value="{{ $subject->id }}" {{ request('subject_id') == $subject->id ? 'selected' : '' }}>
+                                {{ $subject->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                
                 <button type="submit" class="btn btn-primary mb-2">
                     <i class="fas fa-filter"></i> Filter
                 </button>

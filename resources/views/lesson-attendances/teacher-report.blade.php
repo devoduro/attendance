@@ -176,6 +176,18 @@
                 </div>
                 
                 <div class="form-group mb-2 mr-2">
+                    <label for="subject_id" class="sr-only">Subject</label>
+                    <select class="form-control" id="subject_id" name="subject_id">
+                        <option value="">All Subjects</option>
+                        @foreach($subjects as $id => $name)
+                            <option value="{{ $id }}" {{ request('subject_id') == $id ? 'selected' : '' }}>
+                                {{ $name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                
+                <div class="form-group mb-2 mr-2">
                     <label for="date_from" class="sr-only">Date From</label>
                     <input type="date" class="form-control" id="date_from" name="date_from" value="{{ request('date_from') }}" placeholder="Date From">
                 </div>
@@ -207,6 +219,7 @@
                     <thead>
                         <tr>
                             <th>Centre</th>
+                            <th>Subject</th>
                             <th>Day</th>
                             <th>Time</th>
                             <th>Students</th>
@@ -220,6 +233,7 @@
                         @forelse($lessonSchedules as $schedule)
                             <tr>
                                 <td>{{ $schedule->centre->name }}</td>
+                                <td>{{ $schedule->subject->name ?? 'N/A' }}</td>
                                 <td>{{ $schedule->day_of_week }}</td>
                                 <td>{{ $schedule->lessonSection->start_time }} - {{ $schedule->lessonSection->end_time }}</td>
                                 <td>{{ $schedule->students_count }}</td>
@@ -241,7 +255,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="8" class="text-center">No lesson schedules found.</td>
+                                <td colspan="9" class="text-center">No lesson schedules found.</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -266,6 +280,7 @@
                         <tr>
                             <th>Date</th>
                             <th>Centre</th>
+                            <th>Subject</th>
                             <th>Time</th>
                             <th>Students Present</th>
                             <th>Students Absent</th>
@@ -278,6 +293,7 @@
                             <tr>
                                 <td>{{ \Carbon\Carbon::parse($date)->format('d M Y') }}</td>
                                 <td>{{ $records['centre'] }}</td>
+                                <td>{{ $records['subject'] ?? 'N/A' }}</td>
                                 <td>{{ $records['time'] }}</td>
                                 <td>{{ $records['present'] }}</td>
                                 <td>{{ $records['absent'] }}</td>
@@ -297,7 +313,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="text-center">No attendance records found.</td>
+                                <td colspan="8" class="text-center">No attendance records found.</td>
                             </tr>
                         @endforelse
                     </tbody>

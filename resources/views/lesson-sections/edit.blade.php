@@ -119,6 +119,25 @@
                     </div>
                 </div>
                 
+                <!-- Weekly Repeat Field -->
+                <div class="mb-6">
+                    <div class="flex flex-col md:flex-row md:items-center">
+                        <label for="repeat_weekly" class="block text-sm font-medium text-gray-700 md:w-1/4 mb-2 md:mb-0">
+                            <div class="flex items-center">
+                                <i class="fas fa-sync-alt text-gray-400 mr-2"></i>
+                                Weekly Repeat
+                            </div>
+                        </label>
+                        <div class="md:w-3/4">
+                            <label class="inline-flex items-center">
+                                <input type="checkbox" class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50 h-5 w-5" id="repeat_weekly" name="repeat_weekly" value="1" {{ old('repeat_weekly', $lessonSection->repeat_weekly ?? true) ? 'checked' : '' }}>
+                                <span class="ml-2 text-gray-700">Repeat Weekly</span>
+                            </label>
+                            <p class="mt-1 text-sm text-gray-500">When enabled, this lesson section will be scheduled to repeat every week</p>
+                        </div>
+                    </div>
+                </div>
+                
                 <!-- Submit Button -->
                 <div class="flex justify-end mt-8">
                     <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200">

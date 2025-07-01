@@ -28,9 +28,9 @@
                     <label for="centre_id" class="block text-sm font-medium text-gray-700 mb-1">Centre <span class="text-red-500">*</span></label>
                     <select class="w-full px-3 py-2 border border-gray-200 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('centre_id') border-red-500 @enderror" id="centre_id" name="centre_id" required>
                         <option value="">Select Centre</option>
-                        @foreach($centres as $id => $name)
-                            <option value="{{ $id }}" {{ old('centre_id') == $id ? 'selected' : '' }}>
-                                {{ $name }}
+                        @foreach($centres as $centre)
+                            <option value="{{ $centre->id }}" {{ old('centre_id') == $centre->id ? 'selected' : '' }}>
+                                {{ $centre->name }} ({{ $centre->location }})
                             </option>
                         @endforeach
                     </select>
@@ -43,9 +43,9 @@
                     <label for="lesson_section_id" class="block text-sm font-medium text-gray-700 mb-1">Lesson Section <span class="text-red-500">*</span></label>
                     <select class="w-full px-3 py-2 border border-gray-200 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('lesson_section_id') border-red-500 @enderror" id="lesson_section_id" name="lesson_section_id" required>
                         <option value="">Select Lesson Section</option>
-                        @foreach($lessonSections as $id => $name)
-                            <option value="{{ $id }}" {{ old('lesson_section_id') == $id ? 'selected' : '' }}>
-                                {{ $name }}
+                        @foreach($lessonSections as $section)
+                            <option value="{{ $section->id }}" {{ old('lesson_section_id') == $section->id ? 'selected' : '' }}>
+                                {{ $section->name }} ({{ $section->start_time }} - {{ $section->end_time }})
                             </option>
                         @endforeach
                     </select>
@@ -58,9 +58,9 @@
                     <label for="teacher_id" class="block text-sm font-medium text-gray-700 mb-1">Teacher <span class="text-red-500">*</span></label>
                     <select class="w-full px-3 py-2 border border-gray-200 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('teacher_id') border-red-500 @enderror" id="teacher_id" name="teacher_id" required>
                         <option value="">Select Teacher</option>
-                        @foreach($teachers as $id => $name)
-                            <option value="{{ $id }}" {{ old('teacher_id') == $id ? 'selected' : '' }}>
-                                {{ $name }}
+                        @foreach($teachers as $teacher)
+                            <option value="{{ $teacher->id }}" {{ old('teacher_id') == $teacher->id ? 'selected' : '' }}>
+                                {{ $teacher->user->name }}
                             </option>
                         @endforeach
                     </select>
@@ -73,9 +73,9 @@
                     <label for="subject_id" class="block text-sm font-medium text-gray-700 mb-1">Subject <span class="text-red-500">*</span></label>
                     <select class="w-full px-3 py-2 border border-gray-200 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('subject_id') border-red-500 @enderror" id="subject_id" name="subject_id" required>
                         <option value="">Select Subject</option>
-                        @foreach($subjects as $id => $name)
-                            <option value="{{ $id }}" {{ old('subject_id') == $id ? 'selected' : '' }}>
-                                {{ $name }}
+                        @foreach($subjects as $subject)
+                            <option value="{{ $subject->id }}" {{ old('subject_id') == $subject->id ? 'selected' : '' }}>
+                                {{ $subject->name }}
                             </option>
                         @endforeach
                     </select>

@@ -200,7 +200,7 @@
                         <option value="">All Schedules</option>
                         @foreach($lessonSchedules as $schedule)
                             <option value="{{ $schedule->id }}" {{ request('lesson_schedule_id') == $schedule->id ? 'selected' : '' }}>
-                                {{ $schedule->centre->name }} - {{ $schedule->day_of_week }} ({{ $schedule->lessonSection->start_time }})
+                                {{ $schedule->centre->name }} - {{ $schedule->subject->name ?? 'N/A' }} - {{ $schedule->day_of_week }} ({{ $schedule->lessonSection->start_time }})
                             </option>
                         @endforeach
                     </select>
@@ -251,6 +251,7 @@
                             <th>Date</th>
                             <th>Day</th>
                             <th>Centre</th>
+                            <th>Subject</th>
                             <th>Time</th>
                             <th>Teacher</th>
                             <th>Status</th>
@@ -263,6 +264,7 @@
                                 <td>{{ $record->date->format('d M Y') }}</td>
                                 <td>{{ $record->date->format('l') }}</td>
                                 <td>{{ $record->lessonSchedule->centre->name }}</td>
+                                <td>{{ $record->lessonSchedule->subject->name ?? 'N/A' }}</td>
                                 <td>{{ $record->lessonSchedule->lessonSection->start_time }} - {{ $record->lessonSchedule->lessonSection->end_time }}</td>
                                 <td>{{ $record->lessonSchedule->teacher->user->name ?? 'N/A' }}</td>
                                 <td>
@@ -278,7 +280,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="text-center">No attendance records found.</td>
+                                <td colspan="8" class="text-center">No attendance records found.</td>
                             </tr>
                         @endforelse
                     </tbody>
